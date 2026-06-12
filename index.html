@@ -4548,7 +4548,7 @@ function renderAIChat() {
       '<div class="time">' + new Date().toLocaleTimeString() + '</div>';
     // 非错误/非加载的 assistant 消息底部加「保存到文案库」按钮
     if (msg.role === 'assistant' && msg.content && msg.content.indexOf('⚠️') === -1 && msg.content.indexOf('❌') === -1) {
-      html += '<div class="ai-save-bar"><button class="ai-save-btn" data-msgidx="' + i + '" onclick="aiInjectFromChat(this)">💾 保存到文案库</button></div>';
+      html += '<div class="ai-save-bar"><button class="ai-save-btn" data-msgidx="' + i + '" onclick="aiInjectFromChat(this)">📝 填入编辑区</button></div>';
     }
     html += '</div>';
   }
@@ -4566,31 +4566,112 @@ function aiAddChatMessage(role, content) {
   renderAIChat();
 }
 
-// ===== AI 一键保存到文案库 =====
+// ===== AI 解析口播文案并填入编辑区 =====
+
+// 解析 AI 回复中的结构化字段（标题/钩子/正文/金句/CTA/话题）
+function parseAICopy(content) {
+  if (!content || typeof content !== 'string') return null;
+  var result = { title: '', hook: '', content: '', golden: '', cta: '', topics: '' };
+  var found = false;
+
+  // 提取单行字段的通用函数
+  function extractOne(pattern) {
+    var m = content.match(pattern);
+    return (m && m[1]) ? m[1].trim() : '';
+  }
+
+  // 标题
+  result.title = extractOne(/标题[：:]\s*([^\n]+)/);
+  if (result.title) found = true;
+
+  // 钩子（支持多种说法）
+  result.hook = extractOne(/钩子[：:]\s*([^\n]+)/) ||
+                extractOne(/开头[：:]\s*([^\n]+)/) ||
+                extractOne(/第一句[：:]\s*([^\n]+)/);
+  if (result.hook) found = true;
+
+  // 正文：找到「正文：」标记后，一直读到下一个字段标记为止
+  var marker = content.match(/正文[：:]/);
+  if (marker) {
+    var start = marker.index + marker[0].length;
+    var end = content.length;
+    var nextFields = ['金句', 'CTA', '结尾引导', '话题', '话题标签'];
+    for (var i = 0; i < nextFields.length; i++) {
+      var idx = content.indexOf(nextFields[i], start);
+      if (idx !== -1 && idx < end) end = idx;
+    }
+    result.content = content.substring(start, end).trim();
+    found = true;
+  }
+
+  // 金句
+  result.golden = extractOne(/金句[：:]\s*([^\n]+)/) ||
+                   extractOne(/核心句[：:]\s*([^\n]+)/);
+  if (result.golden) found = true;
+
+  // CTA（支持多种说法）
+  result.cta = extractOne(/CTA[：:]\s*([^\n]+)/) ||
+                extractOne(/结尾引导[：:]\s*([^\n]+)/) ||
+                extractOne(/行动号召[：:]\s*([^\n]+)/) ||
+                extractOne(/结尾[：:]\s*([^\n]+)/);
+  if (result.cta) found = true;
+
+  // 话题
+  result.topics = extractOne(/话题[：:]\s*([^\n]+)/) ||
+                  extractOne(/话题标签[：:]\s*([^\n]+)/);
+  if (result.topics) found = true;
+
+  if (!found) return null;
+  return result;
+}
+
+// 将解析结果填入左侧编辑区
+function fillEditPanel(data) {
+  // 展开左侧编辑区
+  var left = document.getElementById('leftPanel');
+  if (left && left.classList.contains('collapsed')) {
+    left.classList.remove('collapsed');
+    var arrow = document.querySelector('#leftToggle .toggle-arrow');
+    if (arrow) arrow.textContent = '◀';
+  }
+  // 填入各字段
+  if (document.getElementById('fieldTitle')) document.getElementById('fieldTitle').value = data.title || '';
+  if (document.getElementById('fieldHook')) document.getElementById('fieldHook').value = data.hook || '';
+  if (document.getElementById('inputArea')) document.getElementById('inputArea').value = data.content || '';
+  if (document.getElementById('fieldGolden')) document.getElementById('fieldGolden').value = data.golden || '';
+  if (document.getElementById('fieldCTA')) document.getElementById('fieldCTA').value = data.cta || '';
+  if (document.getElementById('fieldTopics')) {
+    var t = (data.topics || '').replace(/#/g, ' ').replace(/\s+/g, ' ').trim();
+    document.getElementById('fieldTopics').value = t;
+  }
+  // 触发字数统计和自动提取
+  if (typeof updateCharCount === 'function') updateCharCount();
+  if (typeof autoExtract === 'function') autoExtract();
+}
+
+// ===== AI 一键填入编辑区 =====
 function aiInjectFromChat(btn) {
   var idx = parseInt(btn.getAttribute('data-msgidx'), 10);
   if (isNaN(idx) || !aiConversation[idx]) { showToast('⚠️ 找不到对应消息', 'error'); return; }
   var content = aiConversation[idx].content;
-  if (!content || content.trim() === '') { showToast('⚠️ 内容为空，无法保存', 'error'); return; }
-  var item = {
-    id: 'ai_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    title: '',
-    content: content,
-    tags: ['AI生成'],
-    hook: '', golden: '', cta: '', topics: [],
-    shot: false,
-    charCount: content.length,
-    timeEstimate: Math.max(10, Math.ceil(content.length / 3.5)),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    hotLevel: ''
-  };
-  try {
-    var db = loadDB(); db.push(item); saveDB(db);
-    renderList();
-    showToast('✅ 已保存到文案库', 'success');
-  } catch(e) {
-    showToast('❌ 保存失败：' + (e.message || '未知错误'), 'error');
+  if (!content || content.trim() === '') { showToast('⚠️ 内容为空，无法填入', 'error'); return; }
+
+  var parsed = parseAICopy(content);
+  if (parsed && parsed.content) {
+    fillEditPanel(parsed);
+    showToast('✅ 已填入编辑区，请检查后点「保存」', 'success');
+  } else {
+    // 解析失败 → 降级：整体填入正文，展开编辑区
+    var left = document.getElementById('leftPanel');
+    if (left && left.classList.contains('collapsed')) {
+      left.classList.remove('collapsed');
+      var arrow = document.querySelector('#leftToggle .toggle-arrow');
+      if (arrow) arrow.textContent = '◀';
+    }
+    if (document.getElementById('inputArea')) document.getElementById('inputArea').value = content;
+    if (typeof updateCharCount === 'function') updateCharCount();
+    if (typeof autoExtract === 'function') autoExtract();
+    showToast('⚠️ 未识别到完整结构，已填入正文，请手动补充字段', 'warning');
   }
 }
 
