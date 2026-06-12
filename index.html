@@ -4774,7 +4774,7 @@ var TEMPLATES = [
   {
     name: '📖 黄金文档·退款故事',
     desc: '15秒口播：疫情封城退款——帮一个客户减少损失，换10个朋友的信任',
-    title: '疫情封城，我白白亏了一单',
+    title: '这一单我亏了，但赚了10个客户',
     hook: '2022年有个北京客户，订了很多螺蛳鸭脚煲',
     golden: '帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任',
     cta: '你遇到过这样靠谱的老板吗？评论区聊两句',
@@ -6093,7 +6093,7 @@ function saveEntry() {
 function injectGoldenCopy() {
   var copy = {
     id: 'gc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-    title: '疫情封城，我白白亏了一单',
+    title: '这一单我亏了，但赚了10个客户',
     content: '2022年有个北京客户，订了很多螺蛳鸭脚煲。结果她那条街封了，快递在站点躺了7天，送到的时候全坏了。快递说天灾不赔，货没了，钱我退。亏是肯定亏了，但我觉得值——帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任。',
     tags: ['牛酷客'],
     hook: '2022年有个北京客户，订了很多螺蛳鸭脚煲',
@@ -6112,7 +6112,7 @@ function injectGoldenCopy() {
     db.push(copy);
     saveDB(db);
     renderList();
-    showToast('✅ 已注入口播文案「疫情封城，我白白亏了一单」', 'success');
+    showToast('✅ 已注入口播文案「这一单我亏了，但赚了10个客户」', 'success');
   } catch (e) {
     showToast('❌ 注入失败：' + (e.message || '未知错误'), 'error');
   }
