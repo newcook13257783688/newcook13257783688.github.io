@@ -4470,6 +4470,7 @@ function toggleAIPanel() {
 
 function renderAIChat() {
   var container = document.getElementById('aiChatMessages');
+  var scrollContainer = document.getElementById('aiChatBody');
   var empty = document.getElementById('aiEmptyState');
   if (!container) return;
   if (aiConversation.length === 0) {
@@ -4488,7 +4489,12 @@ function renderAIChat() {
       '<div class="time">' + new Date().toLocaleTimeString() + '</div></div>';
   }
   container.innerHTML = html;
-  container.scrollTop = container.scrollHeight;
+  // 滚动到最新消息（确保 DOM 渲染完成）
+  setTimeout(function() {
+    if (scrollContainer) {
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }, 0);
 }
 
 function aiAddChatMessage(role, content) {
@@ -4498,6 +4504,7 @@ function aiAddChatMessage(role, content) {
 
 function aiShowLoading() {
   var container = document.getElementById('aiChatMessages');
+  var scrollContainer = document.getElementById('aiChatBody');
   var empty = document.getElementById('aiEmptyState');
   if (empty) empty.style.display = 'none';
   var loadingEl = document.createElement('div');
@@ -4505,7 +4512,9 @@ function aiShowLoading() {
   loadingEl.id = 'aiLoadingMsg';
   loadingEl.innerHTML = '<div class="ai-loading"><div class="dot-pulse"><span></span><span></span><span></span></div> AI 思考中...</div>';
   container.appendChild(loadingEl);
-  container.scrollTop = container.scrollHeight;
+  if (scrollContainer) {
+    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+  }
 }
 
 function aiHideLoading() {
