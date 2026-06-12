@@ -4548,8 +4548,7 @@ function renderAIChat() {
       '<div class="time">' + new Date().toLocaleTimeString() + '</div>';
     // 非错误/非加载的 assistant 消息底部加「保存到文案库」按钮
     if (msg.role === 'assistant' && msg.content && msg.content.indexOf('⚠️') === -1 && msg.content.indexOf('❌') === -1) {
-      var safeContent = escapeHtml(msg.content);
-      html += '<div class="ai-save-bar"><button class="ai-save-btn" onclick="aiInjectToDB(\'' + safeContent.replace(/'/g, "\\'") + '\')">💾 保存到文案库</button></div>';
+      html += '<div class="ai-save-bar"><button class="ai-save-btn" data-msgidx="' + i + '" onclick="aiInjectFromChat(this)">💾 保存到文案库</button></div>';
     }
     html += '</div>';
   }
@@ -4568,7 +4567,10 @@ function aiAddChatMessage(role, content) {
 }
 
 // ===== AI 一键保存到文案库 =====
-function aiInjectToDB(content) {
+function aiInjectFromChat(btn) {
+  var idx = parseInt(btn.getAttribute('data-msgidx'), 10);
+  if (isNaN(idx) || !aiConversation[idx]) { showToast('⚠️ 找不到对应消息', 'error'); return; }
+  var content = aiConversation[idx].content;
   if (!content || content.trim() === '') { showToast('⚠️ 内容为空，无法保存', 'error'); return; }
   var item = {
     id: 'ai_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
