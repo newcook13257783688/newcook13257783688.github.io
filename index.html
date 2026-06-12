@@ -3672,7 +3672,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.6</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.7</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -4671,6 +4671,17 @@ var VERSION_HISTORY = [
       '💫 hover 阴影等比缩小，精致不浮夸',
       '📐 存储状态指示器同步缩小，视觉协调'
     ]
+  },
+  {
+    version: '2.7',
+    date: '2026-06-13',
+    tag: '📖 黄金文档·口播文案注入',
+    desc: [
+      '📖 新增黄金文档模板「退款故事」15秒口播文案',
+      '⚡ 新增 injectGoldenCopy() 一键注入函数',
+      '🔗 URL 参数 ?inject=golden 自动注入（打开链接即用）',
+      '📚 口播内容：疫情封城退款——价值观故事'
+    ]
   }
 ];
 
@@ -4759,6 +4770,16 @@ var TEMPLATES = [
     cta: '收藏起来，下次做菜不踩坑',
     topics: '美食 干货 避坑指南',
     content: '【痛点】\n很多人做菜都会犯这个错误\n\n【解决方案】\n...\n\n【效果展示】\n...\n\n【互动引导】\n收藏起来，下次做菜不踩坑'
+  },
+  {
+    name: '📖 黄金文档·退款故事',
+    desc: '15秒口播：疫情封城退款——帮一个客户减少损失，换10个朋友的信任',
+    title: '疫情封城，我白白亏了一单',
+    hook: '2022年有个北京客户，订了很多螺蛳鸭脚煲',
+    golden: '帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任',
+    cta: '你遇到过这样靠谱的老板吗？评论区聊两句',
+    topics: '牛酷客 价值观 信任 口播',
+    content: '2022年有个北京客户，订了很多螺蛳鸭脚煲。结果她那条街封了，快递在站点躺了7天，送到的时候全坏了。快递说天灾不赔，货没了，钱我退。亏是肯定亏了，但我觉得值——帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任。'
   },
   {
     name: '空模板',
@@ -6065,6 +6086,35 @@ function saveEntry() {
   // 根据设置决定是否自动清空表单
   if (getAutoClear()) {
     clearForm();
+  }
+}
+
+// ===== 一键注入——从黄金文档生成口播 =====
+function injectGoldenCopy() {
+  var copy = {
+    id: 'gc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+    title: '疫情封城，我白白亏了一单',
+    content: '2022年有个北京客户，订了很多螺蛳鸭脚煲。结果她那条街封了，快递在站点躺了7天，送到的时候全坏了。快递说天灾不赔，货没了，钱我退。亏是肯定亏了，但我觉得值——帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任。',
+    tags: ['牛酷客'],
+    hook: '2022年有个北京客户，订了很多螺蛳鸭脚煲',
+    golden: '帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任',
+    cta: '你遇到过这样靠谱的老板吗？评论区聊两句',
+    topics: ['牛酷客', '价值观', '信任', '口播'],
+    shot: false,
+    charCount: 130,
+    timeEstimate: 18,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    hotLevel: ''
+  };
+  try {
+    var db = loadDB();
+    db.push(copy);
+    saveDB(db);
+    renderList();
+    showToast('✅ 已注入口播文案「疫情封城，我白白亏了一单」', 'success');
+  } catch (e) {
+    showToast('❌ 注入失败：' + (e.message || '未知错误'), 'error');
   }
 }
 
@@ -8220,6 +8270,18 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof renderList === 'function') {
     renderList();
     updateCompareFloatBtn();
+  }
+  // URL 参数自动注入：?inject=golden
+  var urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('inject') === 'golden') {
+    setTimeout(function() {
+      if (typeof injectGoldenCopy === 'function') {
+        injectGoldenCopy();
+        // 清除 URL 参数，避免刷新重复注入
+        var url = window.location.protocol + '//' + window.location.host + window.location.pathname;
+        window.history.replaceState({}, '', url);
+      }
+    }, 500);
   }
 });
 </script>
