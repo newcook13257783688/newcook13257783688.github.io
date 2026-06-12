@@ -3684,7 +3684,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.8</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.9</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -3807,7 +3807,7 @@ body.theme-dark .tag-clear-btn:hover {
       <!-- JS 动态生成版本条目 -->
     </div>
     <div class="version-footer">
-      当前版本 v<span id="versionFooter">2.5</span> · 每项修改递增 0.1 · AI 助手已集成
+      当前版本 v<span id="versionFooter">2.9</span> · 每项修改递增 0.1 · AI 助手已集成
     </div>
   </div>
 </div>
@@ -4792,7 +4792,7 @@ function aiQuickGenerate() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.5';
+var APP_VERSION = '2.9';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -4874,6 +4874,17 @@ var VERSION_HISTORY = [
       '💾 AI 回复底部「保存到文案库」一键注入',
       '📝 新增快捷操作：写口播 / 写朋友圈 / 改时长',
       '📐 6个快捷按钮自动换行，适配面板宽度'
+    ]
+  },
+  {
+    version: '2.9',
+    date: '2026-06-13',
+    tag: '📝 AI回复一键填入编辑区',
+    desc: [
+      '📝 AI回复底部按钮改为「填入编辑区」（替代直接存库）',
+      '🧩 自动解析结构化字段：标题/钩子/正文/金句/CTA/话题',
+      '📂 解析失败降级处理：整体填入正文框，提示手动补充',
+      '📐 自动展开左侧编辑区，填入后提示用户检查再保存'
     ]
   }
 ];
