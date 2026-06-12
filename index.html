@@ -3780,7 +3780,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.9</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.10</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -3903,7 +3903,7 @@ body.theme-dark .tag-clear-btn:hover {
       <!-- JS 动态生成版本条目 -->
     </div>
     <div class="version-footer">
-      当前版本 v<span id="versionFooter">2.9</span> · 每项修改递增 0.1 · AI 助手已集成
+      当前版本 v<span id="versionFooter">2.10</span> · 每项修改递增 0.1 · AI 助手已集成
     </div>
   </div>
 </div>
@@ -4285,9 +4285,7 @@ function updateStorageEstimate() {
 }
 
 function showStorageDetail() {
-  // 确保有最新数据
-  updateStorageEstimate();
-  // 填充弹窗内容
+  // 先显示弹窗（loading 状态），再异步填充数据
   var modeText = document.getElementById('storageModeText');
   var modeDot = document.getElementById('storageModeDot');
   var barFill = document.getElementById('storageBarFill');
@@ -4295,6 +4293,7 @@ function showStorageDetail() {
   var totalText = document.getElementById('storageTotalText');
   var infoGrid = document.getElementById('storageInfoGrid');
   var footer = document.querySelector('#storageDetailOverlay .storage-footer');
+  var ov = document.getElementById('storageDetailOverlay');
 
   // 模式
   if (_idbAvailable) {
@@ -4305,47 +4304,59 @@ function showStorageDetail() {
     if (modeDot) { modeDot.className = 'storage-dot warn'; }
   }
 
-  // 容量数据
-  var usage = 0, quota = 0, pct = 0;
-  if (_storageEst) {
-    usage = _storageEst.usage || 0;
-    quota = _storageEst.quota || 0;
-    pct = quota > 0 ? Math.round(usage / quota * 100) : 0;
-  }
-
-  // 进度条
-  if (barFill) {
-    barFill.style.width = Math.min(pct, 100) + '%';
-    barFill.className = 'storage-bar-fill ' + (pct < 50 ? 'low' : pct < 85 ? 'mid' : 'high');
-  }
-  if (usedText) usedText.textContent = formatBytes(usage);
-  if (totalText) totalText.textContent = quota > 0 ? formatBytes(quota) : '未知';
-
-  // 信息网格
-  if (infoGrid) {
-    var dataSize = calcDataSize();
-    var db = loadDB();
-    var cats = loadCategories();
-    var html = '';
-    html += '<div class="storage-info-item"><span class="lbl">已用容量</span><span class="val">' + formatBytes(usage) + '</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">总配额</span><span class="val">' + (quota > 0 ? formatBytes(quota) : '未知') + '</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">使用占比</span><span class="val">' + pct + '%</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">剩余空间</span><span class="val">' + (quota > 0 ? formatBytes(quota - usage) : '未知') + '</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">文案条数</span><span class="val">' + (db ? db.length : 0) + ' 条</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">分类数</span><span class="val">' + (cats ? cats.length : 0) + ' 个</span></div>';
-    html += '<div class="storage-info-item"><span class="lbl">数据大小</span><span class="val">' + formatBytes(dataSize) + '</span></div>';
-    infoGrid.innerHTML = html;
-  }
-
-  if (footer) {
-    footer.textContent = _idbAvailable
-      ? 'IndexedDB 模式 · 数据持久化存储'
-      : 'localStorage 降级模式 · 建议更换浏览器';
-  }
-
-  // 显示弹窗
-  var ov = document.getElementById('storageDetailOverlay');
+  // 先显示加载中
+  if (usedText) usedText.textContent = '检测中…';
+  if (totalText) totalText.textContent = '检测中…';
+  if (barFill) { barFill.style.width = '0%'; barFill.className = 'storage-bar-fill low'; }
+  if (infoGrid) infoGrid.innerHTML = '<div style="color:#999;font-size:12px;">正在获取存储数据…</div>';
   if (ov) ov.classList.add('show');
+
+  // 异步获取存储容量
+  if (!navigator.storage || typeof navigator.storage.estimate !== 'function') {
+    // 浏览器不支持 estimate
+    if (usedText) usedText.textContent = '不支持';
+    if (totalText) totalText.textContent = '不支持';
+    if (infoGrid) infoGrid.innerHTML = '<div style="color:#999;font-size:12px;">当前浏览器不支持存储容量检测</div>';
+    return;
+  }
+
+  navigator.storage.estimate().then(function(est) {
+    var usage = est.usage || 0;
+    var quota = est.quota || 0;
+    var pct = quota > 0 ? Math.round(usage / quota * 100) : 0;
+
+    // 进度条
+    if (barFill) {
+      barFill.style.width = Math.min(pct, 100) + '%';
+      barFill.className = 'storage-bar-fill ' + (pct < 50 ? 'low' : pct < 85 ? 'mid' : 'high');
+    }
+
+    // 进度条标签：明确标注「已用」和「总配额」
+    if (usedText) usedText.textContent = '已用 ' + formatBytes(usage);
+    if (totalText) totalText.textContent = '总配额 ' + (quota > 0 ? formatBytes(quota) : '未知');
+
+    // 信息网格（去掉重复的已用/总配额，只保留关键指标）
+    if (infoGrid) {
+      var db = loadDB();
+      var cats = loadCategories();
+      var html = '';
+      html += '<div class="storage-info-item"><span class="lbl">使用占比</span><span class="val">' + pct + '%</span></div>';
+      html += '<div class="storage-info-item"><span class="lbl">剩余空间</span><span class="val">' + (quota > 0 ? formatBytes(quota - usage) : '未知') + '</span></div>';
+      html += '<div class="storage-info-item"><span class="lbl">文案条数</span><span class="val">' + (db ? db.length : 0) + ' 条</span></div>';
+      html += '<div class="storage-info-item"><span class="lbl">分类数</span><span class="val">' + (cats ? cats.length : 0) + ' 个</span></div>';
+      infoGrid.innerHTML = html;
+    }
+
+    if (footer) {
+      footer.textContent = _idbAvailable
+        ? 'IndexedDB 模式 · 数据持久化存储 · 总配额=' + formatBytes(quota)
+        : 'localStorage 降级模式 · 建议更换浏览器';
+    }
+  }).catch(function() {
+    if (usedText) usedText.textContent = '获取失败';
+    if (totalText) totalText.textContent = '获取失败';
+    if (infoGrid) infoGrid.innerHTML = '<div style="color:#999;font-size:12px;">获取存储数据失败</div>';
+  });
 }
 
 function closeStorageDetail() {
@@ -4998,7 +5009,7 @@ function aiQuickGenerate() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.9';
+var APP_VERSION = '2.10';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5091,6 +5102,17 @@ var VERSION_HISTORY = [
       '🧩 自动解析结构化字段：标题/钩子/正文/金句/CTA/话题',
       '📂 解析失败降级处理：整体填入正文框，提示手动补充',
       '📐 自动展开左侧编辑区，填入后提示用户检查再保存'
+    ]
+  },
+  {
+    version: '2.10',
+    date: '2026-06-13',
+    tag: '📊 存储详情弹窗优化',
+    desc: [
+      '📊 点击存储状态指示器弹出存储详情浮层（替代简单 toast）',
+      '📊 异步获取 navigator.storage.estimate() 实时容量数据',
+      '📊 进度条明确标注「已用 X / 总配额 X」，避免误以为已用 9GB',
+      '📊 信息网格只保留关键指标：使用占比/剩余空间/文案条数/分类数'
     ]
   }
 ];
