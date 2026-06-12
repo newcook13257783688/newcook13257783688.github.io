@@ -3427,6 +3427,18 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-dark .ai-quick-actions button { background: #2a2a2a; border-color: #444; color: #bbb; }
   body.theme-dark .ai-quick-actions button:hover { border-color: #6366f1; color: #a78bfa; background: rgba(99,102,241,0.1); }
   body.theme-dark .ai-empty-state { color: #666; }
+  /* AI 保存按钮 */
+  .ai-save-bar { margin-top: 4px; text-align: right; }
+  .ai-save-btn {
+    font-size: 10px; padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--color-primary); color: var(--color-primary);
+    background: transparent; cursor: pointer; transition: all 0.2s;
+  }
+  .ai-save-btn:hover { background: var(--color-primary); color: #fff; }
+  body.theme-dark .ai-save-btn { border-color: #6366f1; color: #a78bfa; }
+  body.theme-dark .ai-save-btn:hover { background: #6366f1; color: #fff; }
+  body.theme-business .ai-save-btn { border-color: #1677ff; color: #1677ff; }
+  body.theme-business .ai-save-btn:hover { background: #1677ff; color: #fff; }
 </style>
 
 <!-- 自定义确认弹窗 -->
@@ -3672,7 +3684,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.7</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.8</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -3764,6 +3776,9 @@ body.theme-dark .tag-clear-btn:hover {
       <button onclick="aiQuickOptimize()">✏️ 优化当前文案</button>
       <button onclick="aiQuickExtract()">🎣 提取钩子金句</button>
       <button onclick="aiQuickGenerate()">💡 生成金句</button>
+      <button onclick="aiQuickWrite('koubo')">📝 写口播</button>
+      <button onclick="aiQuickWrite('pyq')">📱 写朋友圈</button>
+      <button onclick="aiQuickRewriteTime()">🔄 改时长</button>
     </div>
     <div class="ai-input-row">
       <textarea id="aiInput" placeholder="输入你想让 AI 帮你做什么..." rows="1" onkeydown="aiHandleKeydown(event)"></textarea>
@@ -4280,12 +4295,36 @@ function aiClearConversation() {
 }
 
 function aiGetSystemPrompt() {
-  return '你是一位专业的短视频文案创作和餐饮营销专家。请根据用户的需求提供文案建议。\n' +
-    '回复需要：\n' +
-    '1. 简洁有力，直接给出文案内容\n' +
-    '2. 符合短视频口播风格（3秒抓人、口语化、有钩子）\n' +
-    '3. 如果是餐饮相关，结合以下品牌调性：牛酷客私厨，主打高品质家庭烹饪\n' +
-    '4. 有用的提示：起号期≤10秒，常规期≤20秒';
+  return '你是一位专业的短视频文案创作和餐饮营销专家。\n\n' +
+    '===== 你的身份 =====\n' +
+    '你是「周锅锅」，牛酷客私厨的主理人，柳州本地美食品牌。\n\n' +
+    '===== 人设标签 =====\n' +
+    '1. 柳州味道守艺人（爷爷辈的粉店传承）\n' +
+    '2. 外企辞职创业者（正大集团财务→做私厨）\n' +
+    '3. 7000精准私域主理人（不靠投放纯口碑）\n' +
+    '4. 两代传承，一人坚守（2025年爸爸退休后全扛）\n' +
+    '5. 短视频同城流量实践者（大字报→口播）\n' +
+    '6. 两口子的小生意，一个人的全链条（运营+产品全扛）\n' +
+    '7. 想把手艺写成系统，但身边没人聊这个（程序员思维做菜）\n' +
+    '8. 生意越好越危险——正在找不用命换钱的方法\n' +
+    '9. 知道自己做不动了，就停下来想清楚再走\n' +
+    '10. 什么都想试的终身学习者（连AI都搞了一套文案系统）\n\n' +
+    '===== 核心故事素材 =====\n' +
+    '- 2008年拿下柳铁一中食堂，第一个月赚的顶上班好几个月\n' +
+    '- 2020年春节，4个人45天做了15万（那个还敢吃敢喝的年代）\n' +
+    '- 2022年疫情：北京客户封城收不到货，快递不赔，我自己退款——帮一个客户减少损失，换来10个朋友的信任\n' +
+    '- 女儿出生那年熬夜写了一套积分系统，但一个人跑不动两条线\n' +
+    '- 老婆是2001年非典时在书市认识的，自己选的老婆再烫嘴也要吃下去\n\n' +
+    '===== 核心价值观 =====\n' +
+    '- 坚决不做坑害别人的事，宁愿自己吃亏也要守底线\n' +
+    '- 授人以鱼不如授人以渔，想留给女儿的只有爱和对世界的理解\n' +
+    '- 产品有周期，客户定跨度——老产品下滑，新产品补上\n\n' +
+    '===== 写作要求 =====\n' +
+    '1. 所有文案必须符合「周锅锅」这个人设：接地气、不装、有温度\n' +
+    '2. 口播文案必须包含完整结构：标题 | 钩子 | 正文 | 金句 | CTA | 话题\n' +
+    '3. 起号期视频≤10秒，常规期≤20秒，开头3秒必须抓人\n' +
+    '4. 口语化，像跟朋友聊天一样，不要书面语\n' +
+    '5. 如果是写朋友圈，优先用人设型内容（温度/专业/靠谱/利他轮流切换）';
 }
 
 function aiGetAPIEndpoint() {
@@ -4360,6 +4399,26 @@ function aiGenerateGolden(topic, callback) {
     { role: 'user', content: '关于"' + topic + '"这个主题，请生成5条适合短视频口播的金句（每条15-30字），直接列出不要序号：' }
   ];
   aiCallAPI(messages, null, callback);
+}
+
+// AI 快捷操作：写口播/写朋友圈
+function aiQuickWrite(type) {
+  var prompt = '';
+  if (type === 'koubo') {
+    prompt = '请以周锅锅（柳州牛酷客私厨老板）的身份，写一条15-20秒的口播文案。需要有钩子开头+金句结尾，口语化，像跟朋友聊天一样。格式如下：\n\n标题：\n钩子：\n正文：\n金句：\nCTA：\n话题：';
+  } else if (type === 'pyq') {
+    prompt = '请以周锅锅（柳州牛酷客私厨老板）的身份，写一条人设型朋友圈文案。展现真实感和专业度，不要像广告。可以是厨房日常、食材故事、客户反馈中的一种。约100-150字。';
+  }
+  document.getElementById('aiInput').value = prompt;
+  aiSendMessage();
+}
+
+// AI 快捷操作：改时长
+function aiQuickRewriteTime() {
+  var content = document.getElementById('inputArea').value.trim();
+  if (!content) { showToast('⚠️ 请先在左侧编辑区粘贴文案', 'error'); return; }
+  document.getElementById('aiInput').value = '请将以下文案压缩到15-20秒口播时长（约80-100字），保留核心信息和金句，口语化：\n\n' + content;
+  aiSendMessage();
 }
 // ===== 🤖 AI 助手核心模块结束 =====
 
@@ -4486,7 +4545,13 @@ function renderAIChat() {
     var isUser = msg.role === 'user';
     html += '<div class="ai-message ' + msg.role + '">' +
       '<div class="bubble">' + escapeHtml(msg.content) + '</div>' +
-      '<div class="time">' + new Date().toLocaleTimeString() + '</div></div>';
+      '<div class="time">' + new Date().toLocaleTimeString() + '</div>';
+    // 非错误/非加载的 assistant 消息底部加「保存到文案库」按钮
+    if (msg.role === 'assistant' && msg.content && msg.content.indexOf('⚠️') === -1 && msg.content.indexOf('❌') === -1) {
+      var safeContent = escapeHtml(msg.content);
+      html += '<div class="ai-save-bar"><button class="ai-save-btn" onclick="aiInjectToDB(\'' + safeContent.replace(/'/g, "\\'") + '\')">💾 保存到文案库</button></div>';
+    }
+    html += '</div>';
   }
   container.innerHTML = html;
   // 滚动到最新消息（确保 DOM 渲染完成）
@@ -4500,6 +4565,31 @@ function renderAIChat() {
 function aiAddChatMessage(role, content) {
   aiConversation.push({ role: role, content: content });
   renderAIChat();
+}
+
+// ===== AI 一键保存到文案库 =====
+function aiInjectToDB(content) {
+  if (!content || content.trim() === '') { showToast('⚠️ 内容为空，无法保存', 'error'); return; }
+  var item = {
+    id: 'ai_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+    title: '',
+    content: content,
+    tags: ['AI生成'],
+    hook: '', golden: '', cta: '', topics: [],
+    shot: false,
+    charCount: content.length,
+    timeEstimate: Math.max(10, Math.ceil(content.length / 3.5)),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    hotLevel: ''
+  };
+  try {
+    var db = loadDB(); db.push(item); saveDB(db);
+    renderList();
+    showToast('✅ 已保存到文案库', 'success');
+  } catch(e) {
+    showToast('❌ 保存失败：' + (e.message || '未知错误'), 'error');
+  }
 }
 
 function aiShowLoading() {
@@ -4690,6 +4780,17 @@ var VERSION_HISTORY = [
       '⚡ 新增 injectGoldenCopy() 一键注入函数',
       '🔗 URL 参数 ?inject=golden 自动注入（打开链接即用）',
       '📚 口播内容：疫情封城退款——价值观故事'
+    ]
+  },
+  {
+    version: '2.8',
+    date: '2026-06-13',
+    tag: '🤖 AI 助手三大升级',
+    desc: [
+      '🧠 黄金文档注入提示词——AI 懂你的业务和人设',
+      '💾 AI 回复底部「保存到文案库」一键注入',
+      '📝 新增快捷操作：写口播 / 写朋友圈 / 改时长',
+      '📐 6个快捷按钮自动换行，适配面板宽度'
     ]
   }
 ];
