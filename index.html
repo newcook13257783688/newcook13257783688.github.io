@@ -146,7 +146,7 @@
   .topbar { background: #fff; border-bottom: 2px solid #333; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
   .topbar h1 { font-size: 18px; font-weight: bold; }
   .topbar .subtitle { font-size: 12px; color: #999; }
-  .topbar-right { margin-left: auto; display: flex; gap: 8px; position: relative; }
+  .topbar-right { margin-left: auto; display: flex; gap: 6px; position: relative; }
 
   .main { display: flex; height: calc(100vh - 90px); }
 
@@ -229,36 +229,37 @@
 
   /* ===== 顶部操作按钮（统一 Premium 风格）===== */
   .btn-topbar {
-    padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 5px; font-size: 9px; font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
     border: 1px solid transparent; background: #fff;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative; overflow: hidden;
     user-select: none; white-space: nowrap;
   }
   .btn-topbar-export   { color: #2563eb; border-color: #2563eb; }
   .btn-topbar-export:hover {
     background: #2563eb; color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(37,99,235,0.28);
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 6px rgba(37,99,235,0.25);
   }
   .btn-topbar-import   { color: #059669; border-color: #059669; }
   .btn-topbar-import:hover {
     background: #059669; color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(5,150,105,0.28);
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 6px rgba(5,150,105,0.25);
   }
   .btn-topbar-settings { color: #64748b; border-color: #cbd5e1; }
   .btn-topbar-settings:hover {
     background: #64748b; color: #fff; border-color: #64748b;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(100,116,139,0.22);
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 6px rgba(100,116,139,0.20);
   }
   .btn-topbar-hookgolden { color: #7c3aed; border-color: #7c3aed; }
   .btn-topbar-hookgolden:hover {
     background: #7c3aed; color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(124,58,237,0.28);
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 6px rgba(124,58,237,0.25);
   }
   .export-caret { font-size: 8px; }
   .export-menu {
@@ -1242,14 +1243,14 @@
   }
   /* business 顶部按钮 — 提亮品牌色 */
   body.theme-business .btn-topbar-hookgolden { color: #1677ff; border-color: #1677ff; }
-  body.theme-business .btn-topbar-hookgolden:hover { background: #1677ff; color: #fff; box-shadow: 0 3px 8px rgba(22,119,255,0.3); }
+  body.theme-business .btn-topbar-hookgolden:hover { background: #1677ff; color: #fff; box-shadow: 0 2px 6px rgba(22,119,255,0.25); }
   body.theme-business .btn-topbar { background: #fff; }
   body.theme-business .btn-topbar-export   { color: #1677ff; border-color: #1677ff; }
-  body.theme-business .btn-topbar-export:hover   { background: #1677ff; color: #fff; box-shadow: 0 3px 8px rgba(22,119,255,0.3); }
+  body.theme-business .btn-topbar-export:hover   { background: #1677ff; color: #fff; box-shadow: 0 2px 6px rgba(22,119,255,0.25); }
   body.theme-business .btn-topbar-import   { color: #1677ff; border-color: #1677ff; }
-  body.theme-business .btn-topbar-import:hover   { background: #1677ff; color: #fff; box-shadow: 0 3px 8px rgba(22,119,255,0.3); }
+  body.theme-business .btn-topbar-import:hover   { background: #1677ff; color: #fff; box-shadow: 0 2px 6px rgba(22,119,255,0.25); }
   body.theme-business .btn-topbar-settings { color: #888; border-color: #d0d5dd; }
-  body.theme-business .btn-topbar-settings:hover { background: #888; color: #fff; border-color: #888; box-shadow: 0 3px 8px rgba(136,136,136,0.22); }
+  body.theme-business .btn-topbar-settings:hover { background: #888; color: #fff; border-color: #888; box-shadow: 0 2px 6px rgba(136,136,136,0.20); }
   body.theme-business .btn-clear-form:hover {
     background: #fff0f0;
     color: #e33;
@@ -1606,13 +1607,13 @@
   /* dark 顶部按钮 — 暗底 + 亮色边框 */
   body.theme-dark .btn-topbar { background: #1f1f1f; }
   body.theme-dark .btn-topbar-export   { color: #409eff; border-color: #409eff; }
-  body.theme-dark .btn-topbar-export:hover   { background: #409eff; color: #fff; box-shadow: 0 3px 8px rgba(64,158,255,0.35); }
+  body.theme-dark .btn-topbar-export:hover   { background: #409eff; color: #fff; box-shadow: 0 2px 6px rgba(64,158,255,0.30); }
   body.theme-dark .btn-topbar-import   { color: #10b981; border-color: #10b981; }
-  body.theme-dark .btn-topbar-import:hover   { background: #10b981; color: #fff; box-shadow: 0 3px 8px rgba(16,185,129,0.35); }
+  body.theme-dark .btn-topbar-import:hover   { background: #10b981; color: #fff; box-shadow: 0 2px 6px rgba(16,185,129,0.30); }
   body.theme-dark .btn-topbar-settings { color: #94a3b8; border-color: #475569; }
-  body.theme-dark .btn-topbar-settings:hover { background: #475569; color: #e5e5e5; border-color: #475569; box-shadow: 0 3px 8px rgba(71,85,105,0.3); }
+  body.theme-dark .btn-topbar-settings:hover { background: #475569; color: #e5e5e5; border-color: #475569; box-shadow: 0 2px 6px rgba(71,85,105,0.25); }
   body.theme-dark .btn-topbar-hookgolden { color: #a78bfa; border-color: #a78bfa; }
-  body.theme-dark .btn-topbar-hookgolden:hover { background: #a78bfa; color: #1f1f1f; box-shadow: 0 3px 8px rgba(167,139,250,0.35); }
+  body.theme-dark .btn-topbar-hookgolden:hover { background: #a78bfa; color: #1f1f1f; box-shadow: 0 2px 6px rgba(167,139,250,0.30); }
   body.theme-dark .btn-clear-form:hover {
     background: #3a2020;
     color: #ff7875;
@@ -2783,10 +2784,11 @@ body.theme-dark .tag-clear-btn:hover {
 
   /* ===== 版本号按钮样式 ===== */
   .btn-topbar-version {
-    padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 5px; font-size: 9px; font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
     border: 1px solid transparent; background: transparent;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative; overflow: hidden;
     user-select: none; white-space: nowrap;
     color: var(--color-warning); border-color: var(--color-warning);
@@ -2794,19 +2796,19 @@ body.theme-dark .tag-clear-btn:hover {
   }
   .btn-topbar-version:hover {
     background: var(--color-warning); color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(245,158,11,0.28);
+    transform: translateY(-0.5px);
+    box-shadow: 0 2px 6px rgba(245,158,11,0.25);
   }
   .btn-topbar-version .version-badge {
     display: inline-block;
     background: var(--color-warning);
     color: #fff;
     border-radius: 3px;
-    padding: 0 4px;
-    font-size: 9px;
+    padding: 0 3px;
+    font-size: 8px;
     font-weight: 700;
-    line-height: 1.5;
-    margin-right: 2px;
+    line-height: 1.4;
+    margin-right: 1px;
   }
   .btn-topbar-version:hover .version-badge {
     background: #fff;
@@ -2981,10 +2983,10 @@ body.theme-dark .tag-clear-btn:hover {
   .storage-status {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
+    gap: 4px;
+    padding: 2px 8px;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 600;
     cursor: default;
     transition: all 0.3s;
@@ -3008,8 +3010,8 @@ body.theme-dark .tag-clear-btn:hover {
     background: var(--color-warning-light);
   }
   .storage-status .dot {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
   }
@@ -3670,7 +3672,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.5</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.6</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -4657,6 +4659,17 @@ var VERSION_HISTORY = [
       '✏️ 快捷操作：优化文案 / 提取钩子金句 / 生成金句',
       '🔌 AI 连接测试功能（系统设置内一键测试）',
       '🔐 API Key 仅储存在本地 IndexedDB，安全可靠'
+    ]
+  },
+  {
+    version: '2.6',
+    date: '2026-06-12',
+    tag: '🎨 顶部按钮紧凑化',
+    desc: [
+      '🎨 顶部按钮瘦身：字体 9px、内边距 3px 8px、圆角 5px',
+      '✨ 按钮间距收紧至 6px，整排更紧凑利落',
+      '💫 hover 阴影等比缩小，精致不浮夸',
+      '📐 存储状态指示器同步缩小，视觉协调'
     ]
   }
 ];
