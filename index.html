@@ -2968,6 +2968,102 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-business .version-box { background: #fff; color: #222; }
 
   </style>
+  <style id="storageDetailStyle">
+  /* 存储详情弹窗 */
+  .storage-overlay {
+    position: fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10001;
+    display: none;
+    align-items: center; justify-content: center;
+  }
+  .storage-overlay.show { display: flex; }
+  .storage-box {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    width: 380px; max-width: 92vw;
+    animation: stIn 0.25s ease;
+    overflow: hidden;
+  }
+  @keyframes stIn {
+    from { opacity:0; transform: translateY(-10px); }
+    to { opacity:1; transform: translateY(0); }
+  }
+  .storage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #eee;
+  }
+  .storage-header h3 { font-size: 14px; font-weight: 600; margin:0; }
+  .storage-close {
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #ddd; border-radius: 6px;
+    background: #f5f5f5; cursor: pointer;
+    font-size: 15px; color: #666;
+    transition: all 0.2s;
+  }
+  .storage-close:hover { background: #e0e0e0; color: #333; }
+  .storage-body { padding: 16px 20px; }
+  .storage-mode-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px; font-size: 13px;
+  }
+  .storage-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink:0;
+  }
+  .storage-dot.ok { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+  .storage-dot.warn { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+  .storage-bar-wrap { margin-bottom: 6px; }
+  .storage-bar {
+    height: 10px; background: #eee;
+    border-radius: 5px; overflow: hidden;
+  }
+  .storage-bar-fill {
+    height: 100%; border-radius: 5px;
+    transition: width 0.6s ease, background 0.3s;
+  }
+  .storage-bar-fill.low { background: #22c55e; }
+  .storage-bar-fill.mid { background: #f59e0b; }
+  .storage-bar-fill.high { background: #ef4444; }
+  .storage-bar-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: #999;
+    margin-top: 4px;
+  }
+  .storage-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4px 16px; margin-top: 12px;
+  }
+  .storage-info-item {
+    display: flex; justify-content: space-between;
+    font-size: 12px; padding: 5px 0;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  .storage-info-item .lbl { color: #666; }
+  .storage-info-item .val { font-weight: 600; color: #222; }
+  .storage-footer {
+    padding: 10px 20px;
+    border-top: 1px solid #eee;
+    font-size: 11px; color: #999;
+    text-align: center;
+  }
+  /* 深色主题 */
+  body.theme-dark .storage-box { background: #1e1e1e; color: #e5e5e5; }
+  body.theme-dark .storage-header { border-bottom-color: #333; }
+  body.theme-dark .storage-header h3 { color: #e5e5e5; }
+  body.theme-dark .storage-bar { background: #333; }
+  body.theme-dark .storage-info-item { border-bottom-color: #2a2a2a; }
+  body.theme-dark .storage-info-item .lbl { color: #888; }
+  body.theme-dark .storage-info-item .val { color: #e0e0e0; }
+  body.theme-dark .storage-footer { border-top-color: #333; color: #666; }
+  body.theme-dark .storage-close { background: #2a2a2a; border-color: #444; color: #999; }
+  body.theme-dark .storage-close:hover { background: #333; color: #ddd; }
+  /* 商务蓝主题 */
+  body.theme-business .storage-box { background: #fff; }
+  </style>
+
 </head>
 <body>
 
@@ -4145,6 +4241,118 @@ function initIDB() {
   });
 }
 
+// ===== 存储容量工具函数 =====
+function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return '0 B';
+  var units = ['B', 'KB', 'MB', 'GB'];
+  var i = Math.floor(Math.log(bytes) / Math.log(1024));
+  if (i < 0) i = 0;
+  if (i >= units.length) i = units.length - 1;
+  var size = (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : i <= 1 ? 1 : 2);
+  return size + ' ' + units[i];
+}
+
+function calcDataSize() {
+  var total = 0;
+  try {
+    var keys = Object.keys(_idbCache);
+    for (var i = 0; i < keys.length; i++) {
+      var v = _idbCache[keys[i]];
+      if (v) total += v.length * 2;
+    }
+    for (var j = 0; j < localStorage.length; j++) {
+      var k = localStorage.key(j);
+      if (k && k.indexOf('wzj_') === 0) {
+        var val = localStorage.getItem(k);
+        if (val) total += (k.length + val.length) * 2;
+      }
+    }
+  } catch(e) {}
+  return total;
+}
+
+var _storageEst = null;
+function updateStorageEstimate() {
+  if (!navigator.storage || typeof navigator.storage.estimate !== 'function') {
+    _storageEst = null;
+    return;
+  }
+  navigator.storage.estimate().then(function(est) {
+    _storageEst = est;
+  }).catch(function() {
+    _storageEst = null;
+  });
+}
+
+function showStorageDetail() {
+  // 确保有最新数据
+  updateStorageEstimate();
+  // 填充弹窗内容
+  var modeText = document.getElementById('storageModeText');
+  var modeDot = document.getElementById('storageModeDot');
+  var barFill = document.getElementById('storageBarFill');
+  var usedText = document.getElementById('storageUsedText');
+  var totalText = document.getElementById('storageTotalText');
+  var infoGrid = document.getElementById('storageInfoGrid');
+  var footer = document.querySelector('#storageDetailOverlay .storage-footer');
+
+  // 模式
+  if (_idbAvailable) {
+    if (modeText) modeText.textContent = 'IndexedDB（正常）';
+    if (modeDot) { modeDot.className = 'storage-dot ok'; }
+  } else {
+    if (modeText) modeText.textContent = 'localStorage（降级）';
+    if (modeDot) { modeDot.className = 'storage-dot warn'; }
+  }
+
+  // 容量数据
+  var usage = 0, quota = 0, pct = 0;
+  if (_storageEst) {
+    usage = _storageEst.usage || 0;
+    quota = _storageEst.quota || 0;
+    pct = quota > 0 ? Math.round(usage / quota * 100) : 0;
+  }
+
+  // 进度条
+  if (barFill) {
+    barFill.style.width = Math.min(pct, 100) + '%';
+    barFill.className = 'storage-bar-fill ' + (pct < 50 ? 'low' : pct < 85 ? 'mid' : 'high');
+  }
+  if (usedText) usedText.textContent = formatBytes(usage);
+  if (totalText) totalText.textContent = quota > 0 ? formatBytes(quota) : '未知';
+
+  // 信息网格
+  if (infoGrid) {
+    var dataSize = calcDataSize();
+    var db = loadDB();
+    var cats = loadCategories();
+    var html = '';
+    html += '<div class="storage-info-item"><span class="lbl">已用容量</span><span class="val">' + formatBytes(usage) + '</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">总配额</span><span class="val">' + (quota > 0 ? formatBytes(quota) : '未知') + '</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">使用占比</span><span class="val">' + pct + '%</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">剩余空间</span><span class="val">' + (quota > 0 ? formatBytes(quota - usage) : '未知') + '</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">文案条数</span><span class="val">' + (db ? db.length : 0) + ' 条</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">分类数</span><span class="val">' + (cats ? cats.length : 0) + ' 个</span></div>';
+    html += '<div class="storage-info-item"><span class="lbl">数据大小</span><span class="val">' + formatBytes(dataSize) + '</span></div>';
+    infoGrid.innerHTML = html;
+  }
+
+  if (footer) {
+    footer.textContent = _idbAvailable
+      ? 'IndexedDB 模式 · 数据持久化存储'
+      : 'localStorage 降级模式 · 建议更换浏览器';
+  }
+
+  // 显示弹窗
+  var ov = document.getElementById('storageDetailOverlay');
+  if (ov) ov.classList.add('show');
+}
+
+function closeStorageDetail() {
+  var ov = document.getElementById('storageDetailOverlay');
+  if (ov) ov.classList.remove('show');
+}
+
 // ===== 存储状态指示器更新函数 =====
 function updateStorageStatus() {
   var el = document.getElementById('storageLabel');
@@ -4153,12 +4361,14 @@ function updateStorageStatus() {
   if (_idbAvailable) {
     wrap.className = 'storage-status idb-ok';
     el.textContent = 'IndexedDB';
-    wrap.title = '存储模式：IndexedDB（正常）\n容量充足，数据稳定。点击查看详情。';
+    wrap.title = '存储模式：IndexedDB（正常）\n点击查看存储详情';
   } else {
     wrap.className = 'storage-status idb-fallback';
     el.textContent = 'localStorage';
-    wrap.title = '存储模式：localStorage（降级）\n容量有限（约5MB），建议更换浏览器。点击查看详情。';
+    wrap.title = '存储模式：localStorage（降级）\n点击查看存储详情';
   }
+  // 异步获取存储用量
+  updateStorageEstimate();
 }
 
 function closeGlobalWarnBar() {
@@ -4226,11 +4436,7 @@ function checkDataConsistency() {
 // 点击存储状态指示器：显示存储详情
 document.addEventListener('click', function(e) {
   if (e.target && e.target.closest('#storageStatus')) {
-    if (_idbAvailable) {
-      showToast('🟢 存储模式：IndexedDB（正常）\n容量充足，数据稳定', 'success');
-    } else {
-      showToast('🔴 存储模式：localStorage（降级）\n容量有限约5MB，建议更换浏览器', 'warning');
-    }
+    showStorageDetail();
   }
 });
 
@@ -8855,6 +9061,35 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="hg-popup-box">
     <div class="hg-popup-icon">✅</div>
     <div class="hg-popup-msg" id="hgPopupMsg"></div>
+  </div>
+</div>
+
+<!-- 存储详情弹窗 -->
+<div class="storage-overlay" id="storageDetailOverlay" onclick="if(event.target.id==='storageDetailOverlay')closeStorageDetail()">
+  <div class="storage-box">
+    <div class="storage-header">
+      <h3>📊 存储详情</h3>
+      <button class="storage-close" onclick="closeStorageDetail()">×</button>
+    </div>
+    <div class="storage-body">
+      <div class="storage-mode-row" id="storageModeRow">
+        <span class="storage-dot ok" id="storageModeDot"></span>
+        <span id="storageModeText">检测中…</span>
+      </div>
+      <div class="storage-bar-wrap">
+        <div class="storage-bar">
+          <div class="storage-bar-fill low" id="storageBarFill" style="width:0%"></div>
+        </div>
+        <div class="storage-bar-labels">
+          <span id="storageUsedText">-</span>
+          <span id="storageTotalText">-</span>
+        </div>
+      </div>
+      <div class="storage-info-grid" id="storageInfoGrid"></div>
+    </div>
+    <div class="storage-footer">
+      数据仅供参考，实际可用空间取决于浏览器和系统
+    </div>
   </div>
 </div>
 
