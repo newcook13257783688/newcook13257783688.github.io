@@ -3825,7 +3825,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.10</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.11</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -5134,7 +5134,7 @@ function aiQuickGenerate() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.10';
+var APP_VERSION = '2.11';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5238,6 +5238,18 @@ var VERSION_HISTORY = [
       '📊 异步获取 navigator.storage.estimate() 实时容量数据',
       '📊 进度条明确标注「已用 X / 总配额 X」，避免误以为已用 9GB',
       '📊 信息网格只保留关键指标：使用占比/剩余空间/文案条数/分类数'
+    ]
+  },
+  {
+    version: '2.11',
+    date: '2026-06-14',
+    tag: '🎉 报喜模板 + 润色闭环 + 回滚功能',
+    desc: [
+      '🎉 新建文案新增8类报喜模板（爆单/好评/里程碑/新品/外地订单/复购/突破/被认可）',
+      '✨ 左侧编辑区新增「润色」按钮，AI 一键闭环润色（结果直接填回编辑区）',
+      '↩️ 新增「回滚」按钮，润色不满意可一键恢复到润色前版本',
+      '📝 编辑弹窗 + 对比盘每列同步加上润色和回滚功能',
+      '🎨 润色按钮翠绿渐变样式、回滚按钮橙色样式，三主题适配'
     ]
   }
 ];
