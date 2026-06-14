@@ -289,6 +289,9 @@
   .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
   .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.3); }
   .btn-polish:disabled { opacity: 0.5; cursor: wait; }
+  .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; }
+  .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 2px 12px rgba(99,102,241,0.3); }
+  .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   .auto-clear-row { margin-top: 2px; }
   .auto-clear-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; cursor: pointer; user-select: none; }
   .auto-clear-label input[type="checkbox"] { cursor: pointer; width: 14px; height: 14px; accent-color: #333; }
@@ -1269,6 +1272,9 @@
   body.theme-business .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; border-radius: 10px; }
   body.theme-business .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
   body.theme-business .btn-polish:disabled { opacity: 0.5; cursor: wait; }
+  body.theme-business .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; border-radius: 10px; }
+  body.theme-business .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
+  body.theme-business .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   body.theme-business .tag-btn {
     border-radius: 20px;
     border: 1px solid #d9d9d9;
@@ -1638,6 +1644,9 @@
   body.theme-dark .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
   body.theme-dark .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.4); }
   body.theme-dark .btn-polish:disabled { opacity: 0.5; cursor: wait; }
+  body.theme-dark .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; }
+  body.theme-dark .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 2px 12px rgba(99,102,241,0.4); }
+  body.theme-dark .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   body.theme-dark .filter-btn {
     background: #2a2a2a;
     border-color: #555;
@@ -2411,12 +2420,16 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-dark .compare-col-polish:hover { background: #10b981; color: #1e1e1e; }
   body.theme-dark .compare-col-rollback { border-color: #e67e22; color: #e67e22; }
   body.theme-dark .compare-col-rollback:hover { background: #e67e22; color: #1e1e1e; }
+  body.theme-dark .compare-col-polish-moments { border-color: #818cf8; color: #818cf8; }
+  body.theme-dark .compare-col-polish-moments:hover { background: #818cf8; color: #1e1e1e; }
   body.theme-business .compare-col-copy { border-color: #1677ff; color: #1677ff; }
   body.theme-business .compare-col-copy:hover { background: #1677ff; color: #fff; }
   body.theme-business .compare-col-polish { border-color: #1677ff; color: #1677ff; }
   body.theme-business .compare-col-polish:hover { background: #1677ff; color: #fff; }
   body.theme-business .compare-col-rollback { border-color: #e67e22; color: #e67e22; }
   body.theme-business .compare-col-rollback:hover { background: #e67e22; color: #fff; }
+  body.theme-business .compare-col-polish-moments { border-color: #6366f1; color: #6366f1; }
+  body.theme-business .compare-col-polish-moments:hover { background: #6366f1; color: #fff; }
 
   /* 对比列：润色 + 回滚按钮 */
   .compare-col-polish {
@@ -2426,6 +2439,13 @@ body.theme-dark .tag-clear-btn:hover {
   }
   .compare-col-polish:hover { background: #10b981; color: #fff; }
   .compare-col-polish:disabled { opacity: 0.5; cursor: wait; }
+  .compare-col-polish-moments {
+    background: none; border: 1px solid #6366f1; color: #6366f1;
+    font-size: 12px; padding: 2px 6px; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .compare-col-polish-moments:hover { background: #6366f1; color: #fff; }
+  .compare-col-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   .compare-col-rollback {
     background: none; border: 1px solid #e67e22; color: #e67e22;
     font-size: 12px; padding: 2px 6px; border-radius: 4px;
@@ -3650,7 +3670,8 @@ body.theme-dark .tag-clear-btn:hover {
     </div>
     <div class="edit-modal-footer">
       <button class="btn btn-primary" onclick="saveModalEdit()">💾 保存修改</button>
-      <button class="btn btn-polish" id="modalPolishBtn" onclick="modalQuickPolish()">✨ 润色</button>
+      <button class="btn btn-polish" id="modalPolishBtn" onclick="modalQuickPolish()">✍️ 口播</button>
+      <button class="btn btn-polish-moments" id="modalPolishMomentsBtn" onclick="modalQuickPolishMoments()">💬 朋友圈</button>
       <button class="btn btn-rollback hidden" id="modalRollbackBtn" onclick="rollbackModal()" disabled>↩️ 回滚</button>
       <button class="btn btn-cancel-edit" onclick="closeEditModal()" style="display:inline-block;">✖ 取消</button>
     </div>
@@ -4011,7 +4032,8 @@ body.theme-dark .tag-clear-btn:hover {
         <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">💾 保存注入</button>
         <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()">✖ 取消编辑</button>
         <button class="btn btn-clear-form" onclick="clearForm()">🧹 清空表单</button>
-        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()">✨ 润色</button>
+        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()">✍️ 口播</button>
+        <button class="btn btn-polish-moments" id="polishMomentsBtn" onclick="aiQuickPolishMoments()">💬 朋友圈</button>
         <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled>↩️ 回滚</button>
       </div>
     </div>
@@ -4716,7 +4738,32 @@ function aiQuickPolish() {
     // 写回编辑区
     document.getElementById('inputArea').value = polished;
     if (typeof updateCharCount === 'function') updateCharCount();
-    showToast('✨ 润色完成，内容已填回编辑区', 'success');
+    showToast('✨ 口播润色完成，内容已填回编辑区', 'success');
+  });
+}
+// AI 快捷操作：润色朋友圈（点线面体）
+function aiQuickPolishMoments() {
+  var content = document.getElementById('inputArea').value.trim();
+  if (!content) { showToast('⚠️ 请先在左侧编辑区填写文案', 'error'); return; }
+  saveFormSnapshot();
+  var btn = document.getElementById('polishMomentsBtn');
+  var origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 润色中...';
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n格式要求：\n- 纯文字，不要排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
+    { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + content }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    document.getElementById('inputArea').value = polished;
+    if (typeof updateCharCount === 'function') updateCharCount();
+    showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
   });
 }
 // ===== 🤖 AI 助手核心模块结束 =====
@@ -8924,7 +8971,32 @@ function modalQuickPolish() {
     polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
     document.getElementById('modal_inputArea').value = polished;
     if (typeof updateCharCount === 'function') updateCharCount();
-    showToast('✨ 润色完成，内容已填回编辑区', 'success');
+    showToast('✨ 口播润色完成，内容已填回编辑区', 'success');
+  });
+}
+
+function modalQuickPolishMoments() {
+  var content = document.getElementById('modal_inputArea').value.trim();
+  if (!content) { showToast('⚠️ 请先填写文案内容', 'error'); return; }
+  saveModalSnapshot();
+  var btn = document.getElementById('modalPolishMomentsBtn');
+  var origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 润色中...';
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n句子简短、口语化、直接输出纯文案。' },
+    { role: 'user', content: '润色以下朋友圈文案：\n\n' + content }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    document.getElementById('modal_inputArea').value = polished;
+    if (typeof updateCharCount === 'function') updateCharCount();
+    showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
   });
 }
 
@@ -9183,7 +9255,8 @@ function renderCompareModal() {
       '<div class="compare-col-header">' +
         '<span class="compare-col-num">#' + (index + 1) + '</span>' +
         '<div style="display:flex;gap:4px;">' +
-        '<button class="compare-col-polish" onclick="polishCompareColumn(\'' + escId.replace(/'/g, '\\\'') + '\')">✨ 润色</button>' +
+        '<button class="compare-col-polish" onclick="polishCompareColumn(\'' + escId.replace(/'/g, '\\\'') + '\')">✍️ 口播</button>' +
+        '<button class="compare-col-polish-moments" onclick="polishCompareColumnMoments(\'' + escId.replace(/'/g, '\\\'') + '\')">💬 朋友圈</button>' +
         '<button class="compare-col-rollback hidden" id="cmpRollback_' + escId.replace(/[^a-zA-Z0-9_-]/g, '_') + '" onclick="rollbackCompareColumn(\'' + escId.replace(/'/g, '\\\'') + '\')" disabled>↩️</button>' +
         '<button class="compare-col-copy" onclick="copyCompareContent(\'' + escId.replace(/'/g, '\\\'') + '\')">📋 复制文案</button>' +
         '<button class="compare-col-remove" onclick="removeFromCompare(\'' + escId.replace(/'/g, '\\\'') + '\')">✕ 移出对比</button>' +
@@ -9331,7 +9404,32 @@ function polishCompareColumn(id) {
     polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
     ta.value = polished;
     if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
-    showToast('✨ 润色完成，已填回对比列', 'success');
+    showToast('✨ 口播润色完成，已填回对比列', 'success');
+  });
+}
+
+function polishCompareColumnMoments(id) {
+  var col = document.querySelector('.compare-col[data-compare-id="' + id + '"]');
+  if (!col) return;
+  var ta = col.querySelector('.cmp-content');
+  if (!ta || !ta.value.trim()) { showToast('⚠️ 该列无文案内容', 'error'); return; }
+  saveCompareSnapshot(id);
+  var btn = col.querySelector('.compare-col-polish-moments');
+  var origHTML = btn ? btn.innerHTML : '💬 朋友圈';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n句子简短、口语化、直接输出纯文案。' },
+    { role: 'user', content: '润色以下朋友圈文案：\n\n' + ta.value }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    ta.value = polished;
+    if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
+    showToast('💬 朋友圈润色完成，已填回对比列', 'success');
   });
 }
 
