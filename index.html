@@ -210,7 +210,7 @@
     box-shadow: 2px 0 10px rgba(0,0,0,0.08);
   }
   .collapsed .left-toggle .toggle-arrow { transform: rotate(180deg); }
-  .left-inner { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow-y: auto; }
+  .left-inner { padding: 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; overflow-y: auto; overflow-x: hidden; }
   .section-title { font-size: 13px; font-weight: bold; color: #666; margin-bottom: 4px; }
   textarea { width: 100%; height: 180px; border: 1px solid #ddd; padding: 10px; font-size: 13px; line-height: 1.6; resize: vertical; border-radius: 4px; font-family: inherit; }
   textarea:focus { border-color: #333; outline: none; }
@@ -219,23 +219,9 @@
   .tag-btn:hover { background: #f0f0f0; border-color: #bbb; }
   .tag-btn.active { background: #111; color: #fff; border-color: #111; }
   .tag-btn.active:hover { background: #000; border-color: #000; }
-  .btn-row { display: flex; gap: 8px; }
-  /* 左边编辑区按钮精确高度 - 对齐弹窗按钮 */
-  .left .btn-row .btn,
-  .left .btn-row-compact .btn {
-    padding: 3px 10px !important;
-    font-size: 12px !important;
-    height: 28px !important;
-    min-height: 28px !important;
-    max-height: 28px !important;
-    box-sizing: border-box !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1.2 !important;
-  }
-  .left .btn-row .btn-primary,
-  .left .btn-row-compact .btn-primary { flex: none !important; }
+  .btn-row { display: flex; gap: 6px; flex-wrap: wrap; overflow-x: visible; }
+  /* 左边编辑区按钮紧凑样式 */
+  .btn-row-compact .btn { padding: 4px 12px; font-size: 12px; white-space: nowrap; box-sizing: border-box; }
   .btn { padding: 5px 12px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; line-height: 1.4; }
   .btn-primary { background: #333; color: #fff; flex: 1; }
   .btn-primary:hover { background: #555; }
@@ -824,7 +810,7 @@
     gap: 8px;
     flex-shrink: 0;
   }
-  .edit-modal-footer .btn { padding: 3px 10px !important; font-size: 12px !important; height: 28px !important; min-height: 28px !important; max-height: 28px !important; box-sizing: border-box !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; line-height: 1.2 !important; }
+  .edit-modal-footer .btn { padding: 4px 12px; font-size: 12px; white-space: nowrap; box-sizing: border-box; }
   .edit-modal-footer .btn-primary { flex: none; }
   /* 商务蓝主题 */
   body.theme-business .edit-modal-box {
@@ -3688,11 +3674,11 @@ body.theme-dark .tag-clear-btn:hover {
       </div>
     </div>
     <div class="edit-modal-footer">
-      <button class="btn btn-primary" onclick="saveModalEdit()">💾 保存修改</button>
-      <button class="btn btn-polish" id="modalPolishBtn" onclick="modalQuickPolish()">✍️ 口播</button>
-      <button class="btn btn-polish-moments" id="modalPolishMomentsBtn" onclick="modalQuickPolishMoments()">💬 朋友圈</button>
-      <button class="btn btn-rollback hidden" id="modalRollbackBtn" onclick="rollbackModal()" disabled>↩️ 回滚</button>
-      <button class="btn btn-cancel-edit" onclick="closeEditModal()" style="display:inline-block;">✖ 取消</button>
+      <button class="btn btn-primary" onclick="saveModalEdit()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">💾 保存修改</button>
+      <button class="btn btn-polish" id="modalPolishBtn" onclick="modalQuickPolish()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">✍️ 口播</button>
+      <button class="btn btn-polish-moments" id="modalPolishMomentsBtn" onclick="modalQuickPolishMoments()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">💬 朋友圈</button>
+      <button class="btn btn-rollback hidden" id="modalRollbackBtn" onclick="rollbackModal()" disabled style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">↩️ 回滚</button>
+      <button class="btn btn-cancel-edit" onclick="closeEditModal()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;display:inline-block;">✖ 取消</button>
     </div>
   </div>
 </div>
@@ -4048,12 +4034,12 @@ body.theme-dark .tag-clear-btn:hover {
         </div>
       </div>
       <div class="btn-row btn-row-compact">
-        <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">💾 保存注入</button>
-        <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">✖ 取消编辑</button>
-        <button class="btn btn-clear-form" onclick="clearForm()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">🧹 清空表单</button>
-        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">✍️ 口播</button>
-        <button class="btn btn-polish-moments" id="polishMomentsBtn" onclick="aiQuickPolishMoments()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">💬 朋友圈</button>
-        <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">↩️ 回滚</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">💾 保存注入</button>
+        <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">✖ 取消编辑</button>
+        <button class="btn btn-clear-form" onclick="clearForm()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">🧹 清空表单</button>
+        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">✍️ 口播</button>
+        <button class="btn btn-polish-moments" id="polishMomentsBtn" onclick="aiQuickPolishMoments()" style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">💬 朋友圈</button>
+        <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled style="padding:4px 12px;font-size:12px;white-space:nowrap;box-sizing:border-box;">↩️ 回滚</button>
       </div>
     </div>
   </div>
