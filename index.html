@@ -282,6 +282,13 @@
   .btn-cancel-edit.hidden { display: none; }
   .btn-clear-form { background: #fff; color: #888; border: 1px solid #ddd; }
   .btn-clear-form:hover { background: #fff0f0; color: #e33; border-color: #e33; }
+  .btn-rollback { background: #fff; color: #e67e22; border: 1px solid #e67e22; }
+  .btn-rollback:hover { background: #fef9f3; color: #d35400; border-color: #d35400; }
+  .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-rollback:disabled:hover { background: #fff; color: #e67e22; border-color: #e67e22; }
+  .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
+  .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.3); }
+  .btn-polish:disabled { opacity: 0.5; cursor: wait; }
   .auto-clear-row { margin-top: 2px; }
   .auto-clear-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #888; cursor: pointer; user-select: none; }
   .auto-clear-label input[type="checkbox"] { cursor: pointer; width: 14px; height: 14px; accent-color: #333; }
@@ -1256,6 +1263,12 @@
     color: #e33;
     border-color: #e33;
   }
+  body.theme-business .btn-rollback { background: #fff; border-color: #e67e22; color: #e67e22; }
+  body.theme-business .btn-rollback:hover { background: #fef9f3; color: #d35400; border-color: #d35400; }
+  body.theme-business .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
+  body.theme-business .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; border-radius: 10px; }
+  body.theme-business .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
+  body.theme-business .btn-polish:disabled { opacity: 0.5; cursor: wait; }
   body.theme-business .tag-btn {
     border-radius: 20px;
     border: 1px solid #d9d9d9;
@@ -1619,6 +1632,12 @@
     color: #ff7875;
     border-color: #ff7875;
   }
+  body.theme-dark .btn-rollback { background: #2a2a2a; border-color: #e67e22; color: #e67e22; }
+  body.theme-dark .btn-rollback:hover { background: rgba(230,126,34,0.15); color: #f39c12; border-color: #f39c12; }
+  body.theme-dark .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
+  body.theme-dark .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
+  body.theme-dark .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.4); }
+  body.theme-dark .btn-polish:disabled { opacity: 0.5; cursor: wait; }
   body.theme-dark .filter-btn {
     background: #2a2a2a;
     border-color: #555;
@@ -3966,6 +3985,8 @@ body.theme-dark .tag-clear-btn:hover {
         <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">💾 保存注入</button>
         <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()">✖ 取消编辑</button>
         <button class="btn btn-clear-form" onclick="clearForm()">🧹 清空表单</button>
+        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()">✨ 润色</button>
+        <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled>↩️ 回滚</button>
       </div>
     </div>
   </div>
@@ -4637,7 +4658,85 @@ function aiQuickRewriteTime() {
   document.getElementById('aiInput').value = '请将以下文案压缩到15-20秒口播时长（约80-100字），保留核心信息和金句，口语化：\n\n' + content;
   aiSendMessage();
 }
+// AI 快捷操作：润色口播（闭环版——结果直接填回编辑区）
+function aiQuickPolish() {
+  var content = document.getElementById('inputArea').value.trim();
+  if (!content) { showToast('⚠️ 请先在左侧编辑区填写文案', 'error'); return; }
+  // 保存当前表单快照（供回滚使用）
+  saveFormSnapshot();
+  // 按钮进入加载态
+  var btn = document.getElementById('polishBtn');
+  var origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 润色中...';
+  // 直接调用 AI API
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
+    { role: 'user', content: '请润色以下口播文案，直接输出润色后的版本：\n\n' + content }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (error) {
+      showToast('⚠️ 润色失败：' + error, 'error');
+      return;
+    }
+    // 清理 AI 可能返回的多余内容
+    var polished = result.trim();
+    // 去掉可能的 markdown 代码块标记
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    // 去掉可能的「润色后：」等前缀
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    // 写回编辑区
+    document.getElementById('inputArea').value = polished;
+    if (typeof updateCharCount === 'function') updateCharCount();
+    showToast('✨ 润色完成，内容已填回编辑区', 'success');
+  });
+}
 // ===== 🤖 AI 助手核心模块结束 =====
+
+// ===== 表单历史快照（回滚功能）=====
+var formHistory = [];
+var MAX_HISTORY = 5;
+
+function saveFormSnapshot() {
+  formHistory.push({
+    inputArea: document.getElementById('inputArea').value,
+    fieldTitle: document.getElementById('fieldTitle').value,
+    fieldHook: document.getElementById('fieldHook').value,
+    fieldGolden: document.getElementById('fieldGolden').value,
+    fieldCTA: document.getElementById('fieldCTA').value,
+    fieldTopics: document.getElementById('fieldTopics').value
+  });
+  if (formHistory.length > MAX_HISTORY) formHistory.shift();
+  updateRollbackButton();
+}
+
+function rollbackForm() {
+  if (formHistory.length === 0) return;
+  var snapshot = formHistory.pop();
+  document.getElementById('inputArea').value = snapshot.inputArea;
+  document.getElementById('fieldTitle').value = snapshot.fieldTitle;
+  document.getElementById('fieldHook').value = snapshot.fieldHook;
+  document.getElementById('fieldGolden').value = snapshot.fieldGolden;
+  document.getElementById('fieldCTA').value = snapshot.fieldCTA;
+  document.getElementById('fieldTopics').value = snapshot.fieldTopics;
+  if (typeof updateCharCount === 'function') updateCharCount();
+  updateRollbackButton();
+  showToast('↩️ 已回滚到上一版本', 'success');
+}
+
+function updateRollbackButton() {
+  var btn = document.getElementById('rollbackBtn');
+  if (!btn) return;
+  var hasHistory = formHistory.length > 0;
+  btn.disabled = !hasHistory;
+  if (hasHistory) {
+    btn.classList.remove('hidden');
+  } else {
+    btn.classList.add('hidden');
+  }
+}
 
 // ===== AI 配置管理界面函数 =====
 function toggleApiKeyVisibility() {
@@ -5214,6 +5313,86 @@ var TEMPLATES = [
     content: '2022年有个北京客户，订了很多螺蛳鸭脚煲。结果她那条街封了，快递在站点躺了7天，送到的时候全坏了。快递说天灾不赔，货没了，钱我退。亏是肯定亏了，但我觉得值——帮一个客户减少一次损失，她能帮我带来身边10个朋友的信任。'
   },
   {
+    name: '🎉 报喜 · 爆单',
+    desc: '15秒口播：今天爆单报数字 → 感慨 → 感谢信任',
+    title: '今天爆单了',
+    hook: '今天爆单了。【XX单】。',
+    golden: '我继续做，你继续吃。',
+    cta: '',
+    topics: '牛酷客 报喜 爆单',
+    content: '（开心，但不飘）\n今天爆单了。\n【XX单】。\n\n（停顿1秒）\n\n说实话，我自己都没想到。\n一批一批地出，\n从早上忙到现在。\n\n（微微笑）\n\n谢谢大家信任。\n我继续做，你继续吃。'
+  },
+  {
+    name: '🎉 报喜 · 好评',
+    desc: '15秒口播：引述客人原话 → 心情 → 感谢',
+    title: '今天被客人夸了',
+    hook: '今天收到一条消息。',
+    golden: '就这一句话，我今天一天都是好心情。',
+    cta: '',
+    topics: '牛酷客 报喜 好评',
+    content: '（开心，不过分）\n今天收到一条消息。\n\n【谁】跟我说：\n"【客人原话】"\n\n（停顿1秒）\n\n就这一句话，\n我今天一天都是好心情。\n\n谢谢你。'
+  },
+  {
+    name: '🎉 报喜 · 里程碑',
+    desc: '15秒口播：报数字 → 回顾起点 → 下个目标',
+    title: '今天是个小日子',
+    hook: '今天是个小日子。【数字/事件】。',
+    golden: '服务好每一个相信我的人。',
+    cta: '',
+    topics: '牛酷客 报喜 里程碑',
+    content: '（认真，带一点感慨）\n今天是个小日子。\n\n【数字/事件】。\n\n（停顿1秒）\n\n回头想想，\n从【起点】走到现在，\n不容易。\n\n（微微笑）\n\n下一个目标：\n【下一步】。'
+  },
+  {
+    name: '🎉 报喜 · 新品',
+    desc: '15秒口播：新菜成了 → 试吃反馈 → 准备上架',
+    title: '新菜成了',
+    hook: '新菜成了。【菜名】。',
+    golden: '试了好几版，今天终于满意了。',
+    cta: '想吃的，私信我。',
+    topics: '牛酷客 报喜 新品',
+    content: '（兴奋，但不夸张）\n新菜成了。\n\n【菜名】，\n试了好几版，\n今天终于满意了。\n\n（停顿1秒）\n\n【试吃的人】吃了一口，\n说："【反馈原话】"\n\n（笑）\n\n那就准备上架了。\n想吃的，私信我。'
+  },
+  {
+    name: '🎉 报喜 · 外地订单',
+    desc: '15秒口播：寄到哪里 → 奇妙感 → CTA',
+    title: '寄到外地去了',
+    hook: '今天往【地名】寄了【XX份】。',
+    golden: '想到有人隔着几千公里，还在吃我做的东西。',
+    cta: '想试试的，私信我。',
+    topics: '牛酷客 报喜 外地订单',
+    content: '（开心，带点自豪）\n今天往【地名】寄了【XX份】。\n\n【产品名】，\n真空打包，冰袋保鲜。\n\n（停顿1秒）\n\n想到有人隔着几千公里，\n还在吃我做的东西，\n这种感觉真的很奇妙。\n\n（微微笑）\n\n想试试的，私信我。'
+  },
+  {
+    name: '🎉 报喜 · 复购',
+    desc: '15秒口播：第X次下单 → 从何时起 → 味道没变',
+    title: '又来买了，第X次',
+    hook: '今天有个客人，又来买了。第【X】次。',
+    golden: '复购比爆单更让我开心。因为这说明——味道没变。',
+    cta: '',
+    topics: '牛酷客 报喜 复购',
+    content: '（感慨，真诚）\n今天有个客人，\n又来买了。\n\n（停顿1秒）\n\n我翻了一下记录，\n这是他第【X】次下单。\n\n从【第一次的时间/事件】到現在，\n一直都支持我。\n\n（停顿1秒）\n\n说实话，\n复购比爆单更让我开心。\n因为这说明——味道没变。'
+  },
+  {
+    name: '🎉 报喜 · 突破',
+    desc: '15秒口播：具体突破 → 感受 → 金句',
+    title: '做到了一个不敢想的事',
+    hook: '今天做到了一个以前不敢想的事。',
+    golden: '想都是问题，做才是答案。',
+    cta: '',
+    topics: '牛酷客 报喜 突破',
+    content: '（认真，带点成就感）\n今天做到了一个\n以前不敢想的事。\n\n【具体突破】。\n\n（停顿1秒）\n\n以前总觉得难，\n但真的一步一步做下来，\n发现也就是这样。\n\n（微微笑）\n\n想都是问题，\n做才是答案。'
+  },
+  {
+    name: '🎉 报喜 · 被认可',
+    desc: '15秒口播：谁怎么找到你的 → 原话 → 感慨',
+    title: '有人专门来找我',
+    hook: '今天有人专门【怎么找到你的】。',
+    golden: '做了【X】年，听到这句话，所有辛苦都值了。',
+    cta: '',
+    topics: '牛酷客 报喜 被认可',
+    content: '（微微感动，不过分煽情）\n今天有人专门\n【怎么找到你的】。\n\n他说：\n"【原话】"\n\n（停顿2秒）\n\n做了【X】年，\n听到这句话，\n所有辛苦都值了。\n\n谢谢你还记得。'
+  },
+  {
     name: '空模板',
     desc: '空白模板，自由发挥',
     title: '',
@@ -5714,6 +5893,8 @@ function applyTemplate(idx) {
     left.classList.remove('collapsed');
   }
 
+  // 保存当前表单快照（供回滚）
+  saveFormSnapshot();
   // 清空表单（新建模式）
   clearForm();
   currentEditId = null;
