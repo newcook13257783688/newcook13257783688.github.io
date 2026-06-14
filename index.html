@@ -8912,7 +8912,7 @@ function modalQuickPolish() {
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色规则 =====\n轻量化润色：保留结构、只换说法、口语化、句子短。直接输出纯文案，不要JSON/解释/前缀。' },
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
     { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + content }
   ];
   aiCallAPI(messages, null, function(result, error) {
@@ -9320,7 +9320,7 @@ function polishCompareColumn(id) {
   var origHTML = btn ? btn.innerHTML : '✨ 润色';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色规则 =====\n轻量化润色：保留结构、只换说法、口语化、句子短。直接输出纯文案，不要JSON/解释/前缀。' },
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
     { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + ta.value }
   ];
   aiCallAPI(messages, null, function(result, error) {
