@@ -220,7 +220,23 @@
   .tag-btn.active { background: #111; color: #fff; border-color: #111; }
   .tag-btn.active:hover { background: #000; border-color: #000; }
   .btn-row { display: flex; gap: 8px; }
-  .btn { padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; line-height: 1.4; }
+  /* 左边编辑区按钮精确高度 - 对齐弹窗按钮 */
+  .left .btn-row .btn,
+  .left .btn-row-compact .btn {
+    padding: 3px 10px !important;
+    font-size: 12px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+  }
+  .left .btn-row .btn-primary,
+  .left .btn-row-compact .btn-primary { flex: none !important; }
+  .btn { padding: 5px 12px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; font-weight: bold; line-height: 1.4; }
   .btn-primary { background: #333; color: #fff; flex: 1; }
   .btn-primary:hover { background: #555; }
   .btn-export { background: #fff; color: #333; border: 1px solid #333; }
@@ -282,14 +298,14 @@
   .btn-cancel-edit.hidden { display: none; }
   .btn-clear-form { background: #fff; color: #888; border: 1px solid #ddd; }
   .btn-clear-form:hover { background: #fff0f0; color: #e33; border-color: #e33; }
-  .btn-rollback { background: #fff; color: #e67e22; border: 1px solid #e67e22; }
+  .btn-rollback { background: #fff; color: #e67e22; border: 1px solid #e67e22; padding: 5px 12px; }
   .btn-rollback:hover { background: #fef9f3; color: #d35400; border-color: #d35400; }
   .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-rollback:disabled:hover { background: #fff; color: #e67e22; border-color: #e67e22; }
-  .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
+  .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; padding: 5px 12px; }
   .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.3); }
   .btn-polish:disabled { opacity: 0.5; cursor: wait; }
-  .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; }
+  .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; padding: 5px 12px; }
   .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 2px 12px rgba(99,102,241,0.3); }
   .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   .auto-clear-row { margin-top: 2px; }
@@ -802,12 +818,14 @@
   }
   .edit-modal-textarea:focus { border-color: #aaa; }
   .edit-modal-footer {
-    padding: 12px 20px;
+    padding: 8px 16px;
     border-top: 1px solid #eee;
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
   }
+  .edit-modal-footer .btn { padding: 3px 10px !important; font-size: 12px !important; height: 28px !important; min-height: 28px !important; max-height: 28px !important; box-sizing: border-box !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; line-height: 1.2 !important; }
+  .edit-modal-footer .btn-primary { flex: none; }
   /* 商务蓝主题 */
   body.theme-business .edit-modal-box {
     border: 1px solid #d9e8ff;
@@ -1266,13 +1284,13 @@
     color: #e33;
     border-color: #e33;
   }
-  body.theme-business .btn-rollback { background: #fff; border-color: #e67e22; color: #e67e22; }
+  body.theme-business .btn-rollback { background: #fff; border-color: #e67e22; color: #e67e22; padding: 5px 12px; }
   body.theme-business .btn-rollback:hover { background: #fef9f3; color: #d35400; border-color: #d35400; }
   body.theme-business .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
-  body.theme-business .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; border-radius: 10px; }
+  body.theme-business .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; border-radius: 10px; padding: 5px 12px; }
   body.theme-business .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
   body.theme-business .btn-polish:disabled { opacity: 0.5; cursor: wait; }
-  body.theme-business .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; border-radius: 10px; }
+  body.theme-business .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; border-radius: 10px; padding: 5px 12px; }
   body.theme-business .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
   body.theme-business .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   body.theme-business .tag-btn {
@@ -1638,13 +1656,13 @@
     color: #ff7875;
     border-color: #ff7875;
   }
-  body.theme-dark .btn-rollback { background: #2a2a2a; border-color: #e67e22; color: #e67e22; }
+  body.theme-dark .btn-rollback { background: #2a2a2a; border-color: #e67e22; color: #e67e22; padding: 5px 12px; }
   body.theme-dark .btn-rollback:hover { background: rgba(230,126,34,0.15); color: #f39c12; border-color: #f39c12; }
   body.theme-dark .btn-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
-  body.theme-dark .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; }
+  body.theme-dark .btn-polish { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: 1px solid #059669; padding: 5px 12px; }
   body.theme-dark .btn-polish:hover { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 2px 12px rgba(16,185,129,0.4); }
   body.theme-dark .btn-polish:disabled { opacity: 0.5; cursor: wait; }
-  body.theme-dark .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; }
+  body.theme-dark .btn-polish-moments { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: 1px solid #4f46e5; padding: 5px 12px; }
   body.theme-dark .btn-polish-moments:hover { background: linear-gradient(135deg, #4f46e5, #3730a3); box-shadow: 0 2px 12px rgba(99,102,241,0.4); }
   body.theme-dark .btn-polish-moments:disabled { opacity: 0.5; cursor: wait; }
   body.theme-dark .filter-btn {
@@ -3847,7 +3865,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.12</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.13</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -4029,13 +4047,13 @@ body.theme-dark .tag-clear-btn:hover {
           <div class="ef-info" id="extractInfo"></div>
         </div>
       </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()">💾 保存注入</button>
-        <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()">✖ 取消编辑</button>
-        <button class="btn btn-clear-form" onclick="clearForm()">🧹 清空表单</button>
-        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()">✍️ 口播</button>
-        <button class="btn btn-polish-moments" id="polishMomentsBtn" onclick="aiQuickPolishMoments()">💬 朋友圈</button>
-        <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled>↩️ 回滚</button>
+      <div class="btn-row btn-row-compact">
+        <button class="btn btn-primary" id="saveBtn" onclick="saveEntry()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">💾 保存注入</button>
+        <button class="btn btn-cancel-edit hidden" id="cancelEditBtn" onclick="exitEditMode()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">✖ 取消编辑</button>
+        <button class="btn btn-clear-form" onclick="clearForm()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">🧹 清空表单</button>
+        <button class="btn btn-polish" id="polishBtn" onclick="aiQuickPolish()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">✍️ 口播</button>
+        <button class="btn btn-polish-moments" id="polishMomentsBtn" onclick="aiQuickPolishMoments()" style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">💬 朋友圈</button>
+        <button class="btn btn-rollback hidden" id="rollbackBtn" onclick="rollbackForm()" disabled style="padding:3px 10px;font-size:12px;height:28px;box-sizing:border-box;display:inline-flex;align-items:center;">↩️ 回滚</button>
       </div>
     </div>
   </div>
@@ -5210,7 +5228,7 @@ function aiQuickGenerate() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.12';
+var APP_VERSION = '2.13';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5337,6 +5355,17 @@ var VERSION_HISTORY = [
       '🔄 超时后自动降级到 localStorage，确保数据始终可加载',
       '✍️ 润色拆分为双模式：口播（简单去重）+ 朋友圈（点线面体）',
       '🔧 三处润色统一接入双模式：左侧编辑区 / 编辑弹窗 / 对比盘每列'
+    ]
+  },
+  {
+    version: '2.13',
+    date: '2026-06-14',
+    tag: '🔧 按钮高度统一 + 三处提示词同步',
+    desc: [
+      '🔧 左侧编辑区 / 编辑弹窗 / 对比盘 按钮高度全部统一',
+      '✍️ 三处朋友圈润色提示词同步为完整点线面体结构描述',
+      '🎨 按钮 padding 统一为 5px 12px，更紧凑',
+      '🔧 三主题（极简白/商务蓝/科技暗色）按钮样式同步'
     ]
   }
 ];
