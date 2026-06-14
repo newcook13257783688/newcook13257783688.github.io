@@ -3846,7 +3846,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.11</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.12</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -4521,7 +4521,9 @@ document.addEventListener('click', function(e) {
 });
 
 // 后台启动初始化，不阻塞页面渲染
+var _idbInitDone = false;
 initIDB().then(function() {
+  _idbInitDone = true;
   var el = document.getElementById('idbLoadingOverlay');
   if (el) el.style.display = 'none';
   // 更新存储状态指示器
@@ -4547,7 +4549,30 @@ initIDB().then(function() {
       setTimeout(function(){ showToast('⚠️ 系统运行在 localStorage 降级模式，存储容量有限', 'warning'); }, 2000);
     }
   }
+  // 确保数据渲染（以防 DOMContentLoaded 之后才完成初始化）
+  if (typeof renderList === 'function') {
+    try { renderList(); } catch(e) {}
+    try { updateCompareFloatBtn(); } catch(e) {}
+  }
 });
+// 超时兜底：5秒后如果还没初始化完，强制降级
+setTimeout(function() {
+  if (_idbInitDone) return;
+  console.warn('[IDB] 初始化超时，强制降级到 localStorage');
+  _idbAvailable = false;
+  _idbReady = true;
+  _idbInitDone = true;
+  var el = document.getElementById('idbLoadingOverlay');
+  if (el) el.style.display = 'none';
+  updateStorageStatus();
+  if (typeof renderList === 'function') {
+    try { renderList(); } catch(e) {}
+    try { updateCompareFloatBtn(); } catch(e) {}
+  }
+  setTimeout(function(){
+    if (typeof showToast === 'function') showToast('⚠️ 数据加载超时，已切换到本地存储模式。如数据丢失请点击「导入」恢复备份', 'warning');
+  }, 500);
+}, 5000);
 // ===== IndexedDB 层结束 =====
 
 // ===== 🤖 AI 助手核心模块 =====
@@ -4751,7 +4776,7 @@ function aiQuickPolishMoments() {
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n格式要求：\n- 纯文字，不要排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n⚠️ 重要：不要输出「点」「线」「面」「体」等结构标签，写流畅的纯文字段落就好\n格式要求：\n- 纯文字段落，不要任何标签或排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
     { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + content }
   ];
   aiCallAPI(messages, null, function(result, error) {
@@ -4761,6 +4786,9 @@ function aiQuickPolishMoments() {
     var polished = result.trim();
     polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
     polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    // 安全去除「点」「线」「面」「体」标签
+    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
+    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
     document.getElementById('inputArea').value = polished;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
@@ -5181,7 +5209,7 @@ function aiQuickGenerate() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.11';
+var APP_VERSION = '2.12';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5297,6 +5325,17 @@ var VERSION_HISTORY = [
       '↩️ 新增「回滚」按钮，润色不满意可一键恢复到润色前版本',
       '📝 编辑弹窗 + 对比盘每列同步加上润色和回滚功能',
       '🎨 润色按钮翠绿渐变样式、回滚按钮橙色样式，三主题适配'
+    ]
+  },
+  {
+    version: '2.12',
+    date: '2026-06-14',
+    tag: '⏱️ IndexedDB 超时兜底 + 双模式润色',
+    desc: [
+      '⏱️ 新增 IndexedDB 初始化 5 秒超时兜底机制，防止加载遮罩卡死',
+      '🔄 超时后自动降级到 localStorage，确保数据始终可加载',
+      '✍️ 润色拆分为双模式：口播（简单去重）+ 朋友圈（点线面体）',
+      '🔧 三处润色统一接入双模式：左侧编辑区 / 编辑弹窗 / 对比盘每列'
     ]
   }
 ];
@@ -8984,7 +9023,7 @@ function modalQuickPolishMoments() {
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n句子简短、口语化、直接输出纯文案。' },
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n⚠️ 不要输出「点」「线」「面」「体」等标签，直接写流畅的纯文字。口语化、简短。' },
     { role: 'user', content: '润色以下朋友圈文案：\n\n' + content }
   ];
   aiCallAPI(messages, null, function(result, error) {
@@ -8994,6 +9033,8 @@ function modalQuickPolishMoments() {
     var polished = result.trim();
     polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
     polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
+    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
     document.getElementById('modal_inputArea').value = polished;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
@@ -9418,7 +9459,7 @@ function polishCompareColumnMoments(id) {
   var origHTML = btn ? btn.innerHTML : '💬 朋友圈';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n句子简短、口语化、直接输出纯文案。' },
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色规则（点线面体）=====\n按点线面体结构优化朋友圈文案：\n1. 点-钩子、2. 线-故事、3. 面-价值、4. 体-升华\n⚠️ 不要输出「点」「线」「面」「体」等标签，直接写流畅的纯文字。口语化、简短。' },
     { role: 'user', content: '润色以下朋友圈文案：\n\n' + ta.value }
   ];
   aiCallAPI(messages, null, function(result, error) {
@@ -9427,6 +9468,8 @@ function polishCompareColumnMoments(id) {
     var polished = result.trim();
     polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
     polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
+    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
     ta.value = polished;
     if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
     showToast('💬 朋友圈润色完成，已填回对比列', 'success');
