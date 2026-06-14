@@ -2407,8 +2407,32 @@ body.theme-dark .tag-clear-btn:hover {
   .compare-col-copy:hover { background: #10b981; color: #fff; }
   body.theme-dark .compare-col-copy { border-color: #10b981; color: #10b981; }
   body.theme-dark .compare-col-copy:hover { background: #10b981; color: #1e1e1e; }
+  body.theme-dark .compare-col-polish { border-color: #10b981; color: #10b981; }
+  body.theme-dark .compare-col-polish:hover { background: #10b981; color: #1e1e1e; }
+  body.theme-dark .compare-col-rollback { border-color: #e67e22; color: #e67e22; }
+  body.theme-dark .compare-col-rollback:hover { background: #e67e22; color: #1e1e1e; }
   body.theme-business .compare-col-copy { border-color: #1677ff; color: #1677ff; }
   body.theme-business .compare-col-copy:hover { background: #1677ff; color: #fff; }
+  body.theme-business .compare-col-polish { border-color: #1677ff; color: #1677ff; }
+  body.theme-business .compare-col-polish:hover { background: #1677ff; color: #fff; }
+  body.theme-business .compare-col-rollback { border-color: #e67e22; color: #e67e22; }
+  body.theme-business .compare-col-rollback:hover { background: #e67e22; color: #fff; }
+
+  /* 对比列：润色 + 回滚按钮 */
+  .compare-col-polish {
+    background: none; border: 1px solid #10b981; color: #10b981;
+    font-size: 12px; padding: 2px 6px; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .compare-col-polish:hover { background: #10b981; color: #fff; }
+  .compare-col-polish:disabled { opacity: 0.5; cursor: wait; }
+  .compare-col-rollback {
+    background: none; border: 1px solid #e67e22; color: #e67e22;
+    font-size: 12px; padding: 2px 6px; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .compare-col-rollback:hover { background: #e67e22; color: #fff; }
+  .compare-col-rollback:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .compare-col-resize {
     position: absolute; top: 0; right: -5px; width: 10px; height: 100%;
@@ -3626,6 +3650,8 @@ body.theme-dark .tag-clear-btn:hover {
     </div>
     <div class="edit-modal-footer">
       <button class="btn btn-primary" onclick="saveModalEdit()">💾 保存修改</button>
+      <button class="btn btn-polish" id="modalPolishBtn" onclick="modalQuickPolish()">✨ 润色</button>
+      <button class="btn btn-rollback hidden" id="modalRollbackBtn" onclick="rollbackModal()" disabled>↩️ 回滚</button>
       <button class="btn btn-cancel-edit" onclick="closeEditModal()" style="display:inline-block;">✖ 取消</button>
     </div>
   </div>
@@ -8848,6 +8874,71 @@ function saveModalEdit() {
   }
 }
 
+// ===== 编辑弹窗：润色 + 回滚 =====
+var modalFormHistory = [];
+var MODAL_MAX_HISTORY = 5;
+
+function saveModalSnapshot() {
+  modalFormHistory.push({
+    inputArea: document.getElementById('modal_inputArea').value,
+    fieldTitle: document.getElementById('modal_fieldTitle').value,
+    fieldHook: document.getElementById('modal_fieldHook').value,
+    fieldGolden: document.getElementById('modal_fieldGolden').value,
+    fieldCTA: document.getElementById('modal_fieldCTA').value,
+    fieldTopics: document.getElementById('modal_fieldTopics').value
+  });
+  if (modalFormHistory.length > MODAL_MAX_HISTORY) modalFormHistory.shift();
+  updateModalRollbackBtn();
+}
+
+function modalQuickPolish() {
+  var content = document.getElementById('modal_inputArea').value.trim();
+  if (!content) { showToast('⚠️ 请先填写文案内容', 'error'); return; }
+  saveModalSnapshot();
+  var btn = document.getElementById('modalPolishBtn');
+  var origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ 润色中...';
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色规则 =====\n轻量化润色：保留结构、只换说法、口语化、句子短。直接输出纯文案，不要JSON/解释/前缀。' },
+    { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + content }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    document.getElementById('modal_inputArea').value = polished;
+    if (typeof updateCharCount === 'function') updateCharCount();
+    showToast('✨ 润色完成，内容已填回编辑区', 'success');
+  });
+}
+
+function rollbackModal() {
+  if (modalFormHistory.length === 0) return;
+  var s = modalFormHistory.pop();
+  document.getElementById('modal_inputArea').value = s.inputArea;
+  document.getElementById('modal_fieldTitle').value = s.fieldTitle;
+  document.getElementById('modal_fieldHook').value = s.fieldHook;
+  document.getElementById('modal_fieldGolden').value = s.fieldGolden;
+  document.getElementById('modal_fieldCTA').value = s.fieldCTA;
+  document.getElementById('modal_fieldTopics').value = s.fieldTopics;
+  if (typeof updateCharCount === 'function') updateCharCount();
+  updateModalRollbackBtn();
+  showToast('↩️ 已回滚到上一版本', 'success');
+}
+
+function updateModalRollbackBtn() {
+  var btn = document.getElementById('modalRollbackBtn');
+  if (!btn) return;
+  var has = modalFormHistory.length > 0;
+  btn.disabled = !has;
+  if (has) { btn.classList.remove('hidden'); }
+  else { btn.classList.add('hidden'); }
+}
+
 // 通用提示弹窗（覆盖在当前窗口上方，自动消失）
 function showTipOverlay(text, duration) {
   var overlay = document.getElementById('saveSuccessOverlay');
@@ -9080,6 +9171,8 @@ function renderCompareModal() {
       '<div class="compare-col-header">' +
         '<span class="compare-col-num">#' + (index + 1) + '</span>' +
         '<div style="display:flex;gap:4px;">' +
+        '<button class="compare-col-polish" onclick="polishCompareColumn(\'' + escId.replace(/'/g, '\\\'') + '\')">✨ 润色</button>' +
+        '<button class="compare-col-rollback hidden" id="cmpRollback_' + escId.replace(/[^a-zA-Z0-9_-]/g, '_') + '" onclick="rollbackCompareColumn(\'' + escId.replace(/'/g, '\\\'') + '\')" disabled>↩️</button>' +
         '<button class="compare-col-copy" onclick="copyCompareContent(\'' + escId.replace(/'/g, '\\\'') + '\')">📋 复制文案</button>' +
         '<button class="compare-col-remove" onclick="removeFromCompare(\'' + escId.replace(/'/g, '\\\'') + '\')">✕ 移出对比</button>' +
         '</div>' +
@@ -9191,6 +9284,66 @@ async function clearComparePanel() {
   setCompareList([]);
   closeCompareModal();
   showToast('✅ 对比盘已清空', 'success');
+}
+
+// ===== 对比列：润色 + 回滚 =====
+var compareSnapshots = {};
+
+function saveCompareSnapshot(id) {
+  var col = document.querySelector('.compare-col[data-compare-id="' + id + '"]');
+  if (!col) return;
+  var ta = col.querySelector('.cmp-content');
+  if (!ta) return;
+  compareSnapshots[id] = ta.value;
+  updateCompareRollbackBtn(id);
+}
+
+function polishCompareColumn(id) {
+  var col = document.querySelector('.compare-col[data-compare-id="' + id + '"]');
+  if (!col) return;
+  var ta = col.querySelector('.cmp-content');
+  if (!ta || !ta.value.trim()) { showToast('⚠️ 该列无文案内容', 'error'); return; }
+  saveCompareSnapshot(id);
+  var btn = col.querySelector('.compare-col-polish');
+  var origHTML = btn ? btn.innerHTML : '✨ 润色';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
+  var messages = [
+    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色规则 =====\n轻量化润色：保留结构、只换说法、口语化、句子短。直接输出纯文案，不要JSON/解释/前缀。' },
+    { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + ta.value }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    ta.value = polished;
+    if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
+    showToast('✨ 润色完成，已填回对比列', 'success');
+  });
+}
+
+function rollbackCompareColumn(id) {
+  if (!compareSnapshots[id]) return;
+  var col = document.querySelector('.compare-col[data-compare-id="' + id + '"]');
+  if (!col) return;
+  var ta = col.querySelector('.cmp-content');
+  if (!ta) return;
+  ta.value = compareSnapshots[id];
+  delete compareSnapshots[id];
+  if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
+  updateCompareRollbackBtn(id);
+  showToast('↩️ 已回滚到上一版本', 'success');
+}
+
+function updateCompareRollbackBtn(id) {
+  var safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+  var btn = document.getElementById('cmpRollback_' + safeId);
+  if (!btn) return;
+  var has = !!compareSnapshots[id];
+  btn.disabled = !has;
+  if (has) { btn.classList.remove('hidden'); }
+  else { btn.classList.add('hidden'); }
 }
 
 // ===== 对比盘：复制文案到剪贴板 =====
