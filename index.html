@@ -4068,6 +4068,10 @@ body.theme-dark .tag-clear-btn:hover {
           <span class="cloud-btn-desc">从云端恢复全部数据</span>
         </button>
       </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button onclick="checkCloudData()" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#555;transition:all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'">📊 查看云端数据</button>
+        <button onclick="clearCloudAndReUpload()" style="flex:1;padding:8px;border:1px solid #fecaca;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#dc2626;transition:all 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">🔄 清空后重传</button>
+      </div>
       <div class="cloud-sync-hint">
         备份内容：① 文案数据 ② 内容分类 ③ 提示词 ④ 钩子金句库
       </div>
@@ -6224,6 +6228,104 @@ function restoreAllFromCloud() {
 }
 // ===== 一键备份/恢复结束 =====
 
+// ===== 云端诊断工具 =====
+function checkCloudData() {
+  var cfg = getSupabaseConfig();
+  if (!cfg) { showToast('⚠️ Supabase 未配置', 'error'); return; }
+  showToast('📊 正在查询云端数据...', 'info');
+  
+  var tables = ['articles', 'app_config', 'prompts', 'hooks_goldens'];
+  var promises = tables.map(function(table) {
+    return fetch(cfg.url + '/rest/v1/' + table + '?select=count', {
+      headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+    }).then(function(r) {
+      if (!r.ok) throw new Error(table + ': HTTP ' + r.status);
+      return r.headers.get('content-range') || '?';
+    }).catch(function(err) {
+      return table + ': ' + err.message;
+    });
+  });
+  
+  // 也查一下 app_config 的具体 key
+  var catPromise = fetch(cfg.url + '/rest/v1/app_config?select=key,value&key=eq.categories', {
+    headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+  }).then(function(r) { return r.ok ? r.json() : null; });
+  var promptPromise = fetch(cfg.url + '/rest/v1/prompts?select=name', {
+    headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+  }).then(function(r) { return r.ok ? r.json() : null; });
+  
+  Promise.all(promises.concat([catPromise, promptPromise])).then(function(results) {
+    var msg = '📊 云端数据：\n';
+    msg += '• 文案：' + results[0] + '\n';
+    msg += '• 配置：' + results[1] + '\n';
+    msg += '• 提示词：' + results[2] + '\n';
+    msg += '• 钩子金句：' + results[3] + '\n';
+    
+    var cats = results[4];
+    msg += '\n📂 内容分类：' + (cats && cats.length > 0 ? (cats[0].value ? '有数据' : '值为空') : '无记录');
+    if (cats && cats.length > 0 && cats[0].value) {
+      try {
+        var parsed = JSON.parse(cats[0].value);
+        msg += '（' + parsed.length + ' 个）';
+      } catch(e) { msg += '（解析失败）'; }
+    }
+    
+    var prompts = results[5];
+    msg += '\n💬 提示词：' + (prompts ? prompts.length + ' 条' : '无数据');
+    if (prompts && prompts.length > 0) {
+      msg += ' 前3条：' + prompts.slice(0, 3).map(function(p) { return p.name; }).join('、');
+    }
+    
+    showToast(msg, 'info', 8000);
+    console.log('[cloud-diagnostic]', msg);
+    var statusEl = document.getElementById('cloudSyncStatus');
+    if (statusEl) statusEl.textContent = '诊断完成 · 见 Toast 消息';
+  }).catch(function(err) {
+    showToast('❌ 诊断失败：' + err.message, 'error');
+  });
+}
+
+function clearCloudAndReUpload() {
+  var cfg = getSupabaseConfig();
+  if (!cfg) { showToast('⚠️ Supabase 未配置', 'error'); return; }
+  customConfirm('⚠️ 确认要清空云端所有数据然后重新上传？\n\n这会把云端现有的 4 张表全部清空，再重新上传当前本地数据。\n（本地数据不受影响）').then(function(ok) {
+    if (!ok) return;
+    showToast('🔄 正在清空云端数据...', 'info');
+    var statusEl = document.getElementById('cloudSyncStatus');
+    if (statusEl) statusEl.textContent = '清空中...';
+    
+    var tables = ['hooks_goldens', 'prompts', 'app_config', 'articles'];
+    function clearNext(idx) {
+      if (idx >= tables.length) {
+        showToast('✅ 已清空云端，正在重新上传...', 'info');
+        if (statusEl) statusEl.textContent = '清空完成，开始上传...';
+        backupAllToCloud();
+        return;
+      }
+      var table = tables[idx];
+      fetch(cfg.url + '/rest/v1/' + table + '?select=count', {
+        headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+      }).then(function(r) {
+        if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+        return r.headers.get('content-range') || '0';
+      }).then(function(range) {
+        // 获取 max 值（最后一个表示总行数）
+        var parts = range.split('/');
+        var count = parseInt(parts[1] || parts[0] || '0', 10);
+        if (count === 0) { clearNext(idx + 1); return; }
+        // 批量删除（每次最多 1000 条）
+        supabaseRequest('DELETE', table + '?limit=1000')
+          .then(function() { clearNext(idx + 1); })
+          .catch(function(err) { clearNext(idx + 1); });
+      }).catch(function(err) {
+        clearNext(idx + 1);
+      });
+    }
+    clearNext(0);
+  });
+}
+// ===== 云端诊断工具结束 =====
+
 // ===== AI 聊天面板函数 =====
 var aiPanelOpen = false;
 
@@ -6566,7 +6668,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.30';
+var APP_VERSION = '2.31';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6893,6 +6995,16 @@ var VERSION_HISTORY = [
       '🔧 内容分类恢复加成功/失败/空数据分级提示',
       '🔧 提示词恢复空数据也提示，不再静默跳过',
       '🔧 两处恢复都显示恢复条数'
+    ]
+  },
+  {
+    version: '2.31',
+    date: '2026-06-16',
+    tag: '☁️ 新增云端诊断工具 + 清空重传',
+    desc: [
+      '📊 云同步中心新增「查看云端数据」按钮，显示各表记录数',
+      '🔄 新增「清空后重传」按钮：先清空云端再重新上传',
+      '🔧 恢复时每次 fetch 都追加 console.error 日志'
     ]
   }
 ];
