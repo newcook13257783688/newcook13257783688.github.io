@@ -3760,7 +3760,12 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-card .card-actions button { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--border-color); background:#fff; cursor:pointer; transition:all 0.15s; }
   .prompt-card .card-actions button:hover { border-color:var(--color-primary); color:var(--color-primary); }
   .prompt-card .card-actions button.del:hover { border-color:#ef4444; color:#ef4444; }
+  .prompt-card .cb-wrap { flex-shrink:0; padding-top:2px; }
+  .prompt-card .cb-wrap input[type=checkbox] { width:16px; height:16px; cursor:pointer; accent-color:var(--color-primary); }
+  .prompt-card.selected { border-color:var(--color-primary); background:var(--color-primary-light); }
   .prompt-card.default-card { border-color:var(--color-primary-light); background:#f8f9fa; }
+  /* 批量删除 */
+  .prompt-batch-bar { display:flex; align-items:center; gap:8px; padding:0 20px 10px; }
   /* 编辑弹窗 */
   .prompt-edit-box { background:#fff; border-radius:12px; width:580px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); overflow:hidden; animation: promptLibIn 0.25s ease; }
   .prompt-edit-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-color); background:#f8f9fa; }
@@ -4406,6 +4411,10 @@ body.theme-dark .tag-clear-btn:hover {
     <div class="prompt-lib-search" id="promptLibSearchBox">
       <input type="text" id="promptLibSearchInput" placeholder="搜索提示词名称或内容…" oninput="onSearchPromptLib()">
       <span class="result-count" id="promptLibResultCount"></span>
+    </div>
+    <div class="prompt-batch-bar" id="promptBatchBar" style="display:none;">
+      <span id="promptSelectedCount" style="font-size:12px;color:var(--text-secondary);"></span>
+      <button onclick="batchDeletePrompts()" style="padding:4px 12px;border:1px solid #fecaca;border-radius:6px;background:#fff;color:#dc2626;font-size:12px;cursor:pointer;">🗑️ 批量删除</button>
     </div>
     <div class="prompt-lib-body" id="promptLibBody"></div>
   </div>
@@ -5267,6 +5276,8 @@ var promptLibFilter = 'all';
 var promptLibSearch = '';
 
 function openPromptLib() {
+  promptSelected = {};
+  updatePromptBatchBar();
   var ov = document.getElementById('promptLibOverlay');
   ov.style.display = 'flex';
   setTimeout(function() { ov.classList.add('show'); }, 10);
@@ -5363,6 +5374,56 @@ function onSearchPromptLib() {
   renderPromptLib();
 }
 
+// ===== 提示词库批量删除 =====
+var promptSelected = {};
+
+function togglePromptSelect(id, checked) {
+  if (checked) promptSelected[id] = true;
+  else delete promptSelected[id];
+  updatePromptBatchBar();
+  renderPromptLib();
+}
+
+function updatePromptBatchBar() {
+  var keys = Object.keys(promptSelected);
+  var bar = document.getElementById('promptBatchBar');
+  var countEl = document.getElementById('promptSelectedCount');
+  if (bar && countEl) {
+    if (keys.length > 0) { bar.style.display = 'flex'; countEl.textContent = '已选 ' + keys.length + ' 条'; }
+    else { bar.style.display = 'none'; }
+  }
+}
+
+function batchDeletePrompts() {
+  var ids = Object.keys(promptSelected);
+  if (ids.length === 0) { showToast('⚠️ 请先选择要删除的提示词', 'error'); return; }
+  customConfirm('确定删除选中的 ' + ids.length + ' 条提示词？删除后不可恢复。').then(function(ok) {
+    if (!ok) return;
+    var lib = loadPromptLibrary();
+    var deleted = 0;
+    ids.forEach(function(id) {
+      for (var i = 0; i < lib.prompts.length; i++) {
+        if (lib.prompts[i].id === id) {
+          if (lib.prompts[i].isDefault) continue;
+          if (lib.activeKoubo === id) lib.activeKoubo = 'p_default_koubo';
+          if (lib.activePyq === id) lib.activePyq = 'p_default_pyq';
+          if (lib.activeChat === id) lib.activeChat = 'p_default_chat';
+          if (lib.activeBaoxi === id) lib.activeBaoxi = 'p_default_baoxi1';
+          lib.prompts.splice(i, 1);
+          deleted++;
+          break;
+        }
+      }
+    });
+    savePromptLibrary();
+    promptSelected = {};
+    updatePromptBatchBar();
+    renderPromptLib();
+    refreshPromptStatus();
+    showToast('🗑️ 已删除 ' + deleted + ' 条提示词', 'success');
+  });
+}
+
 function renderPromptLib() {
   var lib = loadPromptLibrary();
   var prompts = lib.prompts;
@@ -5389,7 +5450,8 @@ function renderPromptLib() {
     var defaultCls = p.isDefault ? ' default-card' : '';
     var preview = p.content.replace(/\n/g, ' ').substring(0, 80);
     var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id) || (p.type === 'chat' && lib.activeChat === p.id) || (p.type === 'baoxi' && lib.activeBaoxi === p.id);
-    html += '<div class="prompt-card' + defaultCls + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
+    html += '<div class="prompt-card' + defaultCls + (promptSelected[p.id] ? ' selected' : '') + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
+    html += '<label class="cb-wrap" onclick="event.stopPropagation()"><input type="checkbox" ' + (promptSelected[p.id] ? 'checked' : '') + ' onchange="togglePromptSelect(\'' + p.id + '\',this.checked)"></label>';
     html += '<span class="type-badge ' + typeCls + '">' + typeLabel + '</span>';
     html += '<div class="info">';
     html += '<div class="name">' + p.name + ' ' + starHtml + (isActive ? '<span style="font-size:10px;color:var(--color-primary);">✓ 使用中</span>' : '') + '</div>';
@@ -6582,7 +6644,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.42';
+var APP_VERSION = '2.43';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7023,6 +7085,16 @@ var VERSION_HISTORY = [
       '🔧 idbGet 缓存未命中时回退到 localStorage（不再返回 null）',
       '🔧 idbSet 始终同步写入 localStorage 作为备份',
       '🔧 修复刷新页面后分类、提示词等数据变为默认值的 bug'
+    ]
+  },
+  {
+    version: '2.43',
+    date: '2026-06-16',
+    tag: '📋 提示词库新增批量删除',
+    desc: [
+      '📋 每张提示词卡片前加复选框，支持多选',
+      '📋 顶部出现批量删除按钮条',
+      '📋 打开弹窗时自动清除选中状态'
     ]
   }
 ];
