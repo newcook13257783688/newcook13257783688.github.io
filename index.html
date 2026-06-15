@@ -3734,8 +3734,6 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-lib-header .actions button:hover { border-color:var(--color-primary); color:var(--color-primary); }
   .prompt-lib-header .actions button.add-btn { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
   .prompt-lib-header .actions button.add-btn:hover { opacity:0.85; }
-  .prompt-lib-header .actions button.cloud-btn { background:#6366f1; color:#fff; border-color:#6366f1; }
-  .prompt-lib-header .actions button.cloud-btn:hover { opacity:0.85; }
   .prompt-lib-filter { display:flex; gap:6px; padding:10px 20px; border-bottom:1px solid var(--border-color); }
   .prompt-lib-filter .chip { font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid var(--border-color); cursor:pointer; transition:all 0.15s; background:#fff; }
   .prompt-lib-filter .chip:hover { border-color:var(--color-primary); color:var(--color-primary); }
@@ -4047,7 +4045,7 @@ body.theme-dark .tag-clear-btn:hover {
         <button class="settings-add-btn" onclick="testSupabaseConnection()">🔌 测试连接</button>
       </div>
       <div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;" id="supabaseConfigHint">
-        配置后可在提示词库管理中使用「☁️ 上传到云端 / 从云端下载」，同步提示词数据。
+        配置后在系统设置中使用「☁️ 一键备份 / ☁️ 一键恢复」，同步全部数据。
       </div>
     </div>
 
@@ -4394,8 +4392,6 @@ body.theme-dark .tag-clear-btn:hover {
         <button onclick="exportPromptLib()" title="导出全部提示词为JSON">📤 导出</button>
         <button onclick="document.getElementById('promptLibImportFile').click()" title="从JSON文件导入提示词">📥 导入</button>
         <input type="file" id="promptLibImportFile" accept=".json" style="display:none" onchange="importPromptLib(event)">
-        <button class="cloud-btn" onclick="uploadPromptLibToCloud()" title="上传到 Supabase 云端">☁️ 上传</button>
-        <button class="cloud-btn" onclick="downloadPromptLibFromCloud()" title="从 Supabase 云端下载">☁️ 下载</button>
         <button onclick="openPromptEdit()" class="add-btn">+ 新建</button>
         <button onclick="closePromptLib()">✕</button>
       </div>
@@ -5858,78 +5854,6 @@ function supabaseRequest(method, table, data, prefer) {
   });
 }
 
-function uploadPromptLibToCloud() {
-  var lib = loadPromptLibrary();
-  if (!lib || !lib.prompts || lib.prompts.length === 0) {
-    showToast('⚠️ 提示词库为空，没有可上传的数据', 'error');
-    return;
-  }
-  customConfirm('确定将全部 ' + lib.prompts.length + ' 条提示词上传到 Supabase 云端？\n（同名 ID 会覆盖更新）').then(function(ok) {
-    if (!ok) return;
-    showToast('🔄 正在上传...', 'info');
-    var records = lib.prompts.map(function(p) {
-      return {
-        name: p.name,
-        type: p.type || 'chat',
-        content: p.content
-      };
-    });
-    // 分批上传，每批50条
-    function uploadBatch(idx) {
-      if (idx >= records.length) {
-        showToast('✅ 已上传 ' + records.length + ' 条提示词到云端', 'success');
-        return;
-      }
-      var batch = records.slice(idx, idx + 50);
-      supabaseRequest('POST', 'prompts', batch).then(function() {
-        uploadBatch(idx + 50);
-      }).catch(function(err) {
-        showToast('❌ 上传失败：' + err.message, 'error');
-      });
-    }
-    uploadBatch(0);
-  });
-}
-
-function downloadPromptLibFromCloud() {
-  var cfg = getSupabaseConfig();
-  if (!cfg) { showToast('⚠️ 请先配置 Supabase', 'error'); return; }
-  showToast('🔄 正在从云端下载...', 'info');
-  fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
-    headers: {
-      'apikey': cfg.key,
-      'Authorization': 'Bearer ' + cfg.key
-    }
-  })
-  .then(function(r) {
-    if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || 'HTTP ' + r.status); });
-    return r.json();
-  })
-  .then(function(records) {
-    if (!records || records.length === 0) {
-      showToast('📭 云端暂无提示词数据', 'info');
-      return;
-    }
-    var lib = loadPromptLibrary();
-    var added = records.length;
-    lib.prompts = [];
-    records.forEach(function(r, idx) {
-      lib.prompts.push({
-        id: 'cloud_' + Date.now() + '_' + idx,
-        name: r.name || '',
-        type: r.type || 'chat',
-        content: r.content || ''
-      });
-    });
-    savePromptLibrary();
-    renderPromptLib();
-    refreshPromptStatus();
-    showToast('✅ 从云端下载完成：已覆盖本地 ' + added + ' 条提示词', 'success');
-  })
-  .catch(function(err) {
-    showToast('❌ 下载失败：' + err.message, 'error');
-  });
-}
 // ===== Supabase 云同步函数结束 =====
 
 // ===== 一键备份/恢复（四样数据）=====
@@ -6658,7 +6582,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.40';
+var APP_VERSION = '2.41';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7079,6 +7003,16 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 downloadPromptLibFromCloud() 去掉按名称去重逻辑',
       '🔧 改为直接覆盖本地提示词库（与一键恢复一致）'
+    ]
+  },
+  {
+    version: '2.41',
+    date: '2026-06-16',
+    tag: '🗑️ 移除提示词库独立的上传/下载按钮',
+    desc: [
+      '🗑️ 提示词库弹窗顶部的 ☁️ 上传 / ☁️ 下载 按钮已移除',
+      '🗑️ 删除 uploadPromptLibToCloud / downloadPromptLibFromCloud 函数',
+      '💡 现在统一使用系统设置中的「一键备份 / 一键恢复」'
     ]
   }
 ];
