@@ -4416,7 +4416,7 @@ body.theme-dark .tag-clear-btn:hover {
       <span class="result-count" id="promptLibResultCount"></span>
     </div>
     <div class="prompt-lib-body" id="promptLibBody"></div>
-    <div class="prompt-batch-bar" id="promptBatchBar" style="display:none;">
+    <div class="prompt-batch-bar" id="promptBatchBar">
       <label><input type="checkbox" id="promptSelectAll" onchange="togglePromptSelectAll(this.checked)"> 全选</label>
       <span id="promptSelectedCount" style="font-size:12px;color:var(--text-secondary);"></span>
       <button onclick="batchDeletePrompts()" style="padding:4px 12px;border:1px solid #fecaca;border-radius:6px;background:#fff;color:#dc2626;font-size:12px;cursor:pointer;">🗑️ 批量删除</button>
@@ -5435,11 +5435,9 @@ function togglePromptSelectAll(checked) {
 
 function updatePromptBatchBar() {
   var keys = Object.keys(promptSelected);
-  var bar = document.getElementById('promptBatchBar');
   var countEl = document.getElementById('promptSelectedCount');
-  if (bar && countEl) {
-    if (keys.length > 0) { bar.style.display = 'flex'; countEl.textContent = '已选 ' + keys.length + ' 条'; }
-    else { bar.style.display = 'none'; }
+  if (countEl) {
+    countEl.textContent = keys.length > 0 ? '已选 ' + keys.length + ' 条' : '';
   }
 }
 
@@ -6702,7 +6700,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.49';
+var APP_VERSION = '2.50';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7209,6 +7207,15 @@ var VERSION_HISTORY = [
     desc: [
       '🎨 确认弹窗 z-index 从 100001 提升到 100005（高于提示词库 100003）',
       '🎨 全选栏移到提示词库弹窗底部，始终可见'
+    ]
+  },
+  {
+    version: '2.50',
+    date: '2026-06-16',
+    tag: '🎨 全选栏始终显示，不隐藏',
+    desc: [
+      '🎨 全选栏不再隐藏（去掉 display:none 逻辑）',
+      '🎨 未选中时只显示空计数，选中时显示已选数量'
     ]
   }
 ];
