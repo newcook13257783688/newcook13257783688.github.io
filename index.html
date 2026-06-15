@@ -3603,6 +3603,112 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-dark .ai-save-btn:hover { background: #6366f1; color: #fff; }
   body.theme-business .ai-save-btn { border-color: #1677ff; color: #1677ff; }
   body.theme-business .ai-save-btn:hover { background: #1677ff; color: #fff; }
+
+  /* ===== 提示词库 ===== */
+  /* 管理弹窗 */
+  .prompt-lib-overlay { display:none; position:fixed; z-index:10000; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
+  .prompt-lib-overlay.show { display:flex; }
+  .prompt-lib-box { background:#fff; border-radius:12px; width:660px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); overflow:hidden; animation: promptLibIn 0.25s ease; }
+  @keyframes promptLibIn { from{opacity:0;transform:translateY(20px) scale(0.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+  .prompt-lib-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border-color); background:#f8f9fa; }
+  .prompt-lib-header .title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .prompt-lib-header .actions { display:flex; gap:8px; }
+  .prompt-lib-header .actions button { font-size:12px; padding:4px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-color); background:#fff; cursor:pointer; transition:all 0.2s; }
+  .prompt-lib-header .actions button:hover { border-color:var(--color-primary); color:var(--color-primary); }
+  .prompt-lib-header .actions button.add-btn { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+  .prompt-lib-header .actions button.add-btn:hover { opacity:0.85; }
+  .prompt-lib-filter { display:flex; gap:6px; padding:10px 20px; border-bottom:1px solid var(--border-color); }
+  .prompt-lib-filter .chip { font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid var(--border-color); cursor:pointer; transition:all 0.15s; background:#fff; }
+  .prompt-lib-filter .chip:hover { border-color:var(--color-primary); color:var(--color-primary); }
+  .prompt-lib-filter .chip.active { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+  .prompt-lib-body { flex:1; overflow-y:auto; padding:12px 20px; background:#fff; }
+  .prompt-lib-body .empty { text-align:center; padding:40px 20px; color:var(--text-muted); font-size:13px; }
+  .prompt-card { border:1px solid var(--border-color); border-radius:var(--radius-md); padding:12px 14px; margin-bottom:10px; display:flex; align-items:flex-start; gap:10px; transition:all 0.15s; cursor:pointer; background:#fff; }
+  .prompt-card:hover { border-color:var(--color-primary-light); box-shadow:var(--shadow-sm); }
+  .prompt-card .type-badge { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
+  .prompt-card .type-badge.koubo { background:#eef2ff; color:#4f46e5; }
+  .prompt-card .type-badge.pyq { background:#fdf2f8; color:#db2777; }
+  .prompt-card .info { flex:1; min-width:0; }
+  .prompt-card .info .name { font-size:13px; font-weight:500; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+  .prompt-card .info .name .star { color:#f59e0b; font-size:12px; }
+  .prompt-card .info .preview { font-size:11px; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .prompt-card .card-actions { display:flex; gap:4px; flex-shrink:0; }
+  .prompt-card .card-actions button { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid var(--border-color); background:#fff; cursor:pointer; transition:all 0.15s; }
+  .prompt-card .card-actions button:hover { border-color:var(--color-primary); color:var(--color-primary); }
+  .prompt-card .card-actions button.del:hover { border-color:#ef4444; color:#ef4444; }
+  .prompt-card.default-card { border-color:var(--color-primary-light); background:#f8f9fa; }
+  /* 编辑弹窗 */
+  .prompt-edit-box { background:#fff; border-radius:12px; width:580px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); overflow:hidden; animation: promptLibIn 0.25s ease; }
+  .prompt-edit-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-color); background:#f8f9fa; }
+  .prompt-edit-header .title { font-size:14px; font-weight:600; }
+  .prompt-edit-body { padding:16px 18px; display:flex; flex-direction:column; gap:12px; }
+  .prompt-edit-body label { font-size:12px; font-weight:500; color:var(--text-muted); }
+  .prompt-edit-body input, .prompt-edit-body select, .prompt-edit-body textarea { width:100%; border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:8px 10px; font-size:12px; background:#fff; color:var(--text-primary); font-family:inherit; }
+  .prompt-edit-body textarea { min-height:200px; resize:vertical; font-family:'Courier New',monospace; font-size:11px; line-height:1.6; }
+  .prompt-edit-body .row { display:flex; gap:10px; align-items:center; }
+  .prompt-edit-body .row label { display:flex; align-items:center; gap:6px; font-size:11px; cursor:pointer; }
+  .prompt-edit-body .row label input[type=checkbox] { width:auto; }
+  .prompt-edit-footer { display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1px solid var(--border-color); }
+  .prompt-edit-footer button { font-size:12px; padding:6px 16px; border-radius:var(--radius-sm); cursor:pointer; transition:all 0.2s; }
+  .prompt-edit-footer .cancel-btn { border:1px solid var(--border-color); background:#fff; }
+  .prompt-edit-footer .save-btn { background:var(--color-primary); color:#fff; border:none; }
+  .prompt-edit-footer .save-btn:hover { opacity:0.85; }
+
+  /* AI 面板底部提示词状态栏 */
+  .ai-prompt-status { display:flex; gap:8px; padding:4px 10px; border-top:1px solid var(--border-color); font-size:10px; color:var(--text-muted); align-items:center; flex-wrap:wrap; }
+  .ai-prompt-status .item { display:flex; align-items:center; gap:3px; }
+  .ai-prompt-status .item .dot { width:6px; height:6px; border-radius:50%; }
+  .ai-prompt-status .item .dot.koubo { background:#4f46e5; }
+  .ai-prompt-status .item .dot.pyq { background:#db2777; }
+  .ai-prompt-status .item .pick-btn { font-size:10px; padding:0 6px; border-radius:3px; border:1px solid var(--border-color); background:#fff; cursor:pointer; color:var(--color-primary); transition:all 0.15s; }
+  .ai-prompt-status .item .pick-btn:hover { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
+
+  /* 提示词选择器下拉 */
+  .prompt-picker-drop { display:none; position:fixed; z-index:99999; background:#fff; border:1px solid var(--border-color); border-radius:var(--radius-md); box-shadow:var(--shadow-lg); min-width:200px; max-height:240px; overflow-y:auto; animation: pickerIn 0.15s ease; }
+  .prompt-picker-drop.show { display:block; }
+  @keyframes pickerIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:translateY(0);} }
+  .prompt-picker-drop .pick-item { padding:8px 12px; font-size:12px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background 0.1s; border-bottom:1px solid var(--border-light); }
+  .prompt-picker-drop .pick-item:last-child { border-bottom:none; }
+  .prompt-picker-drop .pick-item:hover { background:#f5f5f5; }
+  .prompt-picker-drop .pick-item.active { color:var(--color-primary); font-weight:500; }
+  .prompt-picker-drop .pick-item.active::before { content:'✓'; font-size:10px; color:var(--color-primary); }
+  .prompt-picker-drop .pick-divider { padding:4px 12px; font-size:10px; color:var(--text-muted); border-bottom:1px solid var(--border-light); }
+
+  /* 暗色主题 */
+  body.theme-dark .prompt-lib-box, body.theme-dark .prompt-edit-box { background:#1e1e2e; }
+  body.theme-dark .prompt-lib-header, body.theme-dark .prompt-edit-header { background:#252535; border-color:#333; }
+  body.theme-dark .prompt-lib-body { background:#1e1e2e; }
+  body.theme-dark .prompt-lib-filter, body.theme-dark .prompt-edit-footer { border-color:#333; }
+  body.theme-dark .prompt-card { background:#252535; border-color:#333; }
+  body.theme-dark .prompt-card:hover { border-color:#4f46e5; }
+  body.theme-dark .prompt-card .type-badge.koubo { background:#1e1b4b; color:#a78bfa; }
+  body.theme-dark .prompt-card .type-badge.pyq { background:#4c1d3d; color:#f472b6; }
+  body.theme-dark .prompt-card.default-card { border-color:#4f46e5; background:#1a1a2e; }
+  body.theme-dark .prompt-card .card-actions button { background:#2a2a3a; border-color:#444; color:#ccc; }
+  body.theme-dark .prompt-card .card-actions button:hover { border-color:#4f46e5; color:#a78bfa; }
+  body.theme-dark .prompt-card .card-actions button.del:hover { border-color:#ef4444; color:#ef4444; }
+  body.theme-dark .prompt-picker-drop { background:#1e1e2e; border-color:#333; }
+  body.theme-dark .prompt-picker-drop .pick-item { border-color:#2a2a3a; color:#ccc; }
+  body.theme-dark .prompt-picker-drop .pick-item:hover { background:#252535; }
+  body.theme-dark .prompt-lib-header .actions button { background:#2a2a3a; border-color:#444; color:#ccc; }
+  body.theme-dark .prompt-lib-header .actions button:hover { border-color:#4f46e5; color:#a78bfa; }
+  body.theme-dark .prompt-lib-filter .chip { background:#2a2a3a; border-color:#444; color:#ccc; }
+  body.theme-dark .prompt-lib-filter .chip:hover { border-color:#4f46e5; color:#a78bfa; }
+  body.theme-dark .prompt-lib-filter .chip.active { background:#4f46e5; color:#fff; border-color:#4f46e5; }
+  body.theme-dark .prompt-edit-body input, body.theme-dark .prompt-edit-body select, body.theme-dark .prompt-edit-body textarea { background:#252535; border-color:#444; color:#e0e0e0; }
+  body.theme-dark .prompt-edit-footer .cancel-btn { background:#2a2a3a; border-color:#444; color:#ccc; }
+  body.theme-dark .ai-prompt-status { border-color:#333; }
+  body.theme-dark .ai-prompt-status .item .pick-btn { background:#2a2a3a; border-color:#444; }
+
+  /* 商务蓝主题 */
+  body.theme-business .prompt-lib-box, body.theme-business .prompt-edit-box { border-radius:12px; }
+  body.theme-business .prompt-lib-header .actions button.add-btn { background:#1677ff; border-color:#1677ff; }
+  body.theme-business .prompt-lib-filter .chip.active { background:#1677ff; border-color:#1677ff; }
+  body.theme-business .prompt-card { border-radius:10px; }
+  body.theme-business .prompt-card.default-card { border-color:#1677ff; background:#f0f5ff; }
+  body.theme-business .prompt-card:hover { border-color:#1677ff; }
+  body.theme-business .prompt-edit-footer .save-btn { background:#1677ff; }
+  body.theme-business .ai-prompt-status .item .pick-btn:hover { background:#1677ff; }
 </style>
 
 <!-- 自定义确认弹窗 -->
@@ -3929,10 +4035,9 @@ body.theme-dark .tag-clear-btn:hover {
       <div class="icon">🤖</div>
       <div class="text">
         你好！我是 AI 助手，可以帮你：<br><br>
-        ✏️ 优化文案<br>
-        🎣 提取钩子/金句<br>
-        💡 生成创意想法<br>
-        📝 回答营销问题<br><br>
+        💬 自由对话，随便聊<br>
+        📝 写口播 / 📱 写朋友圈<br>
+        🔄 改时长 / 🧠 问营销问题<br><br>
         <span style="font-size:12px;color:var(--text-muted);">在下方输入或点快捷按钮开始</span>
       </div>
     </div>
@@ -3940,12 +4045,15 @@ body.theme-dark .tag-clear-btn:hover {
   </div>
   <div class="ai-panel-footer">
     <div class="ai-quick-actions">
-      <button onclick="aiQuickOptimize()">✏️ 优化当前文案</button>
-      <button onclick="aiQuickExtract()">🎣 提取钩子金句</button>
-      <button onclick="aiQuickGenerate()">💡 生成金句</button>
       <button onclick="aiQuickWrite('koubo')">📝 写口播</button>
       <button onclick="aiQuickWrite('pyq')">📱 写朋友圈</button>
       <button onclick="aiQuickRewriteTime()">🔄 改时长</button>
+      <button onclick="openPromptLib()" style="font-size:10px;opacity:0.7;" title="管理提示词库">📋</button>
+    </div>
+    <div class="ai-prompt-status" id="aiPromptStatus">
+      <span class="item">🟢 口播：<span id="activeKouboName">默认</span> <button class="pick-btn" onclick="openPromptPicker('koubo',event)">选</button></span>
+      <span class="item">🟣 朋友圈：<span id="activePyqName">默认</span> <button class="pick-btn" onclick="openPromptPicker('pyq',event)">选</button></span>
+      <span class="item">💬 对话：<span id="activeChatName">默认</span> <button class="pick-btn" onclick="openPromptPicker('chat',event)">选</button></span>
     </div>
     <div class="ai-input-row">
       <textarea id="aiInput" placeholder="输入你想让 AI 帮你做什么..." rows="1" onkeydown="aiHandleKeydown(event)"></textarea>
@@ -4095,6 +4203,34 @@ body.theme-dark .tag-clear-btn:hover {
     <div class="card-list" id="cardList"></div>
   </div>
 </div>
+
+<!-- 提示词库管理弹窗 -->
+<div class="prompt-lib-overlay" id="promptLibOverlay" onclick="if(event.target===this)closePromptLib()">
+  <div class="prompt-lib-box">
+    <div class="prompt-lib-header">
+      <div class="title">📋 提示词库</div>
+      <div class="actions">
+        <button onclick="openPromptEdit()" class="add-btn">+ 新建</button>
+        <button onclick="closePromptLib()">✕</button>
+      </div>
+    </div>
+    <div class="prompt-lib-filter" id="promptLibFilter">
+      <span class="chip active" onclick="filterPromptLib('all',this)">全部</span>
+      <span class="chip" onclick="filterPromptLib('koubo',this)">🟢 口播</span>
+      <span class="chip" onclick="filterPromptLib('pyq',this)">🟣 朋友圈</span>
+      <span class="chip" onclick="filterPromptLib('chat',this)">💬 对话</span>
+    </div>
+    <div class="prompt-lib-body" id="promptLibBody"></div>
+  </div>
+</div>
+
+<!-- 提示词编辑弹窗 -->
+<div class="prompt-lib-overlay" id="promptEditOverlay" onclick="if(event.target===this)closePromptEdit()">
+  <div class="prompt-edit-box" id="promptEditBox"></div>
+</div>
+
+<!-- 提示词选择器下拉 -->
+<div class="prompt-picker-drop" id="promptPickerDrop"></div>
 
 <!-- 详情弹窗 -->
 <div class="modal-overlay" id="modalOverlay">
@@ -4736,42 +4872,25 @@ function aiQuickRewriteTime() {
   document.getElementById('aiInput').value = '请将以下文案压缩到15-20秒口播时长（约80-100字），保留核心信息和金句，口语化：\n\n' + content;
   aiSendMessage();
 }
-// AI 快捷操作：润色口播（闭环版——结果直接填回编辑区）
+// AI 快捷操作：润色口播（统一入口）
 function aiQuickPolish() {
   var content = document.getElementById('inputArea').value.trim();
   if (!content) { showToast('⚠️ 请先在左侧编辑区填写文案', 'error'); return; }
-  // 保存当前表单快照（供回滚使用）
   saveFormSnapshot();
-  // 按钮进入加载态
   var btn = document.getElementById('polishBtn');
   var origHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
-  // 直接调用 AI API
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
-    { role: 'user', content: '请润色以下口播文案，直接输出润色后的版本：\n\n' + content }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishKoubo(content, function(result, error) {
     btn.disabled = false;
     btn.innerHTML = origHTML;
-    if (error) {
-      showToast('⚠️ 润色失败：' + error, 'error');
-      return;
-    }
-    // 清理 AI 可能返回的多余内容
-    var polished = result.trim();
-    // 去掉可能的 markdown 代码块标记
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    // 去掉可能的「润色后：」等前缀
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    // 写回编辑区
-    document.getElementById('inputArea').value = polished;
+    if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
+    document.getElementById('inputArea').value = result;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('✨ 口播润色完成，内容已填回编辑区', 'success');
   });
 }
-// AI 快捷操作：润色朋友圈（点线面体）
+// AI 快捷操作：润色朋友圈（统一入口）
 function aiQuickPolishMoments() {
   var content = document.getElementById('inputArea').value.trim();
   if (!content) { showToast('⚠️ 请先在左侧编辑区填写文案', 'error'); return; }
@@ -4780,26 +4899,333 @@ function aiQuickPolishMoments() {
   var origHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n⚠️ 重要：不要输出「点」「线」「面」「体」等结构标签，写流畅的纯文字段落就好\n格式要求：\n- 纯文字段落，不要任何标签或排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
-    { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + content }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishPyq(content, function(result, error) {
     btn.disabled = false;
     btn.innerHTML = origHTML;
     if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
-    var polished = result.trim();
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    // 安全去除「点」「线」「面」「体」标签
-    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
-    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
-    document.getElementById('inputArea').value = polished;
+    document.getElementById('inputArea').value = result;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
   });
 }
 // ===== 🤖 AI 助手核心模块结束 =====
+
+// ===== 📋 提示词库数据层 =====
+var PROMPT_LIBRARY_KEY = 'prompt_library';
+var promptLibraryCache = null;
+
+var DEFAULT_PROMPTS = {
+  koubo: "===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案",
+  pyq: "===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n⚠️ 重要：不要输出「点」「线」「面」「体」等结构标签，写流畅的纯文字段落就好\n格式要求：\n- 纯文字段落，不要任何标签或排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释"
+};
+
+function loadPromptLibrary() {
+  if (promptLibraryCache) return promptLibraryCache;
+  var raw = idbGet(PROMPT_LIBRARY_KEY);
+  if (raw) {
+    try { promptLibraryCache = JSON.parse(raw); return promptLibraryCache; }
+    catch(e) {}
+  }
+  promptLibraryCache = {
+    prompts: [
+      { id: 'p_default_koubo', name: '口播轻量化润色（默认）', type: 'koubo', content: DEFAULT_PROMPTS.koubo, isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_pyq', name: '朋友圈点线面体润色（默认）', type: 'pyq', content: DEFAULT_PROMPTS.pyq, isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_chat', name: 'AI对话（默认）', type: 'chat', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : ''), isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+    ],
+    activeKoubo: 'p_default_koubo',
+    activePyq: 'p_default_pyq',
+    activeChat: 'p_default_chat'
+  };
+  savePromptLibrary();
+  return promptLibraryCache;
+}
+
+function savePromptLibrary() {
+  idbSet(PROMPT_LIBRARY_KEY, JSON.stringify(promptLibraryCache));
+}
+
+function getActivePrompt(type) {
+  var lib = loadPromptLibrary();
+  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
+  if (!activeId) return type === 'chat' ? (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') : DEFAULT_PROMPTS[type];
+  var found = lib.prompts.find(function(p) { return p.id === activeId; });
+  return found ? found.content : (type === 'chat' ? (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') : DEFAULT_PROMPTS[type]);
+}
+
+function getActivePromptName(type) {
+  var lib = loadPromptLibrary();
+  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
+  if (!activeId) return '默认';
+  var found = lib.prompts.find(function(p) { return p.id === activeId; });
+  return found ? found.name : '默认';
+}
+
+function setActivePrompt(type, promptId) {
+  var lib = loadPromptLibrary();
+  if (type === 'koubo') lib.activeKoubo = promptId;
+  else if (type === 'pyq') lib.activePyq = promptId;
+  else lib.activeChat = promptId;
+  savePromptLibrary();
+  refreshPromptStatus();
+}
+
+function genPromptId() { return 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8); }
+
+// ===== 🔄 统一润色入口（供所有位置调用）=====
+function polishKoubo(text, onDone) {
+  var promptContent = getActivePrompt('koubo');
+  var messages = [
+    { role: 'system', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') + '\n\n' + promptContent },
+    { role: 'user', content: '请润色以下口播文案，直接输出：\n\n' + text }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    if (error) { onDone(null, error); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    onDone(polished, null);
+  });
+}
+
+function polishPyq(text, onDone) {
+  var promptContent = getActivePrompt('pyq');
+  var messages = [
+    { role: 'system', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') + '\n\n' + promptContent },
+    { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + text }
+  ];
+  aiCallAPI(messages, null, function(result, error) {
+    if (error) { onDone(null, error); return; }
+    var polished = result.trim();
+    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
+    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
+    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
+    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
+    onDone(polished, null);
+  });
+}
+
+// ===== 📋 提示词库管理弹窗 =====
+var promptLibFilter = 'all';
+
+function openPromptLib() {
+  var ov = document.getElementById('promptLibOverlay');
+  ov.style.display = 'flex';
+  setTimeout(function() { ov.classList.add('show'); }, 10);
+  promptLibFilter = 'all';
+  var chips = document.querySelectorAll('#promptLibFilter .chip');
+  for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+  chips[0].classList.add('active');
+  renderPromptLib();
+}
+
+function closePromptLib() {
+  var ov = document.getElementById('promptLibOverlay');
+  ov.classList.remove('show');
+  setTimeout(function() { ov.style.display = 'none'; }, 260);
+}
+
+function filterPromptLib(type, el) {
+  promptLibFilter = type;
+  var chips = document.querySelectorAll('#promptLibFilter .chip');
+  for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+  el.classList.add('active');
+  renderPromptLib();
+}
+
+function renderPromptLib() {
+  var lib = loadPromptLibrary();
+  var prompts = lib.prompts;
+  if (promptLibFilter !== 'all') prompts = prompts.filter(function(p) { return p.type === promptLibFilter; });
+  var body = document.getElementById('promptLibBody');
+  if (prompts.length === 0) {
+    body.innerHTML = '<div class="empty">📭 还没有提示词，点「+ 新建」创建一条吧</div>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < prompts.length; i++) {
+    var p = prompts[i];
+    var typeLabel = p.type === 'koubo' ? '口播' : '朋友圈';
+    var typeCls = p.type === 'koubo' ? 'koubo' : 'pyq';
+    var starHtml = p.isDefault ? '<span class="star">⭐</span>' : '';
+    var defaultCls = p.isDefault ? ' default-card' : '';
+    var preview = p.content.replace(/\n/g, ' ').substring(0, 80);
+    var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id);
+    html += '<div class="prompt-card' + defaultCls + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
+    html += '<span class="type-badge ' + typeCls + '">' + typeLabel + '</span>';
+    html += '<div class="info">';
+    html += '<div class="name">' + p.name + ' ' + starHtml + (isActive ? '<span style="font-size:10px;color:var(--color-primary);">✓ 使用中</span>' : '') + '</div>';
+    html += '<div class="preview">' + preview + '…</div>';
+    html += '</div>';
+    html += '<div class="card-actions" onclick="event.stopPropagation()">';
+    html += '<button onclick="openPromptEdit(\'' + p.id + '\')">编辑</button>';
+    if (!p.isDefault) html += '<button class="del" onclick="deletePromptConfirm(\'' + p.id + '\')">删除</button>';
+    html += '</div></div>';
+  }
+  body.innerHTML = html;
+}
+
+function selectPromptCard(id, type) {
+  setActivePrompt(type, id);
+  renderPromptLib();
+  showToast('✅ 已切换' + (type === 'koubo' ? '口播' : '朋友圈') + '提示词', 'success');
+}
+
+function deletePromptConfirm(id) {
+  customConfirm('确定删除这条提示词？删除后不可恢复。').then(function(ok) {
+    if (!ok) return;
+    var lib = loadPromptLibrary();
+    var idx = -1;
+    for (var i = 0; i < lib.prompts.length; i++) { if (lib.prompts[i].id === id) { idx = i; break; } }
+    if (idx < 0) return;
+    var p = lib.prompts[idx];
+    if (p.isDefault) { showToast('⚠️ 默认提示词不可删除', 'error'); return; }
+    if (lib.activeKoubo === id) lib.activeKoubo = 'p_default_koubo';
+    if (lib.activePyq === id) lib.activePyq = 'p_default_pyq';
+    lib.prompts.splice(idx, 1);
+    savePromptLibrary();
+    renderPromptLib();
+    refreshPromptStatus();
+    showToast('🗑️ 已删除', 'success');
+  });
+}
+
+// ===== ✏️ 提示词编辑弹窗 =====
+function openPromptEdit(id) {
+  var lib = loadPromptLibrary();
+  var prompt = null;
+  if (id) {
+    for (var i = 0; i < lib.prompts.length; i++) { if (lib.prompts[i].id === id) { prompt = lib.prompts[i]; break; } }
+  }
+  var isNew = !prompt;
+  var box = document.getElementById('promptEditBox');
+  var title = isNew ? '新建提示词' : '编辑提示词';
+  var nameVal = isNew ? '' : prompt.name;
+  var typeVal = isNew ? 'koubo' : prompt.type;
+  var contentVal = isNew ? '' : prompt.content;
+  var defaultChecked = prompt ? prompt.isDefault : false;
+  box.innerHTML = ''
+    + '<div class="prompt-edit-header"><span class="title">' + title + '</span><button onclick="closePromptEdit()" style="border:none;background:none;cursor:pointer;font-size:16px;">×</button></div>'
+    + '<div class="prompt-edit-body">'
+    + '<label>名称</label><input id="promptEditName" value="' + escapeHtml(nameVal) + '" placeholder="给提示词起个名">'
+    + '<label>类型</label><select id="promptEditType"><option value="koubo"' + (typeVal === 'koubo' ? ' selected' : '') + '>🟢 口播润色</option><option value="pyq"' + (typeVal === 'pyq' ? ' selected' : '') + '>🟣 朋友圈润色</option><option value="chat"' + (typeVal === 'chat' ? ' selected' : '') + '>💬 AI对话</option></select>'
+    + '<label>提示词内容</label><textarea id="promptEditContent" placeholder="输入 system prompt 内容...">' + escapeHtml(contentVal) + '</textarea>'
+    + '<div class="row"><label><input type="checkbox" id="promptEditDefault"' + (defaultChecked ? ' checked' : '') + '> 设为默认提示词</label></div>'
+    + '</div>'
+    + '<div class="prompt-edit-footer"><button class="cancel-btn" onclick="closePromptEdit()">取消</button><button class="save-btn" onclick="savePromptEdit(\'' + (id || '') + '\')">保存</button></div>';
+  var ov = document.getElementById('promptEditOverlay');
+  ov.style.display = 'flex';
+  setTimeout(function() { ov.classList.add('show'); }, 10);
+  if (isNew) { setTimeout(function() { var inp = document.getElementById('promptEditName'); if (inp) inp.focus(); }, 300); }
+}
+
+function closePromptEdit() {
+  var ov = document.getElementById('promptEditOverlay');
+  ov.classList.remove('show');
+  setTimeout(function() { ov.style.display = 'none'; }, 260);
+}
+
+function savePromptEdit(id) {
+  var name = document.getElementById('promptEditName').value.trim();
+  var type = document.getElementById('promptEditType').value;
+  var content = document.getElementById('promptEditContent').value.trim();
+  var isDefault = document.getElementById('promptEditDefault').checked;
+  if (!name) { showToast('⚠️ 请输入名称', 'error'); return; }
+  if (!content) { showToast('⚠️ 请输入提示词内容', 'error'); return; }
+  var lib = loadPromptLibrary();
+  if (id) {
+    // 编辑
+    var found = null;
+    for (var i = 0; i < lib.prompts.length; i++) { if (lib.prompts[i].id === id) { found = lib.prompts[i]; break; } }
+    if (found) {
+      found.name = name;
+      found.type = type;
+      found.content = content;
+      found.updatedAt = new Date().toISOString();
+      if (isDefault) {
+        // 清除同类型其他默认
+        for (var j = 0; j < lib.prompts.length; j++) { if (lib.prompts[j].type === type) lib.prompts[j].isDefault = false; }
+        found.isDefault = true;
+      }
+    }
+  } else {
+    // 新建
+    var newId = genPromptId();
+    if (isDefault) {
+      for (var k = 0; k < lib.prompts.length; k++) { if (lib.prompts[k].type === type) lib.prompts[k].isDefault = false; }
+    }
+    lib.prompts.push({ id: newId, name: name, type: type, content: content, isDefault: isDefault, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+    // 如果该类型没有活跃提示词，自动设为活跃
+    if (type === 'koubo' && !lib.activeKoubo) lib.activeKoubo = newId;
+    if (type === 'pyq' && !lib.activePyq) lib.activePyq = newId;
+    if (type === 'chat' && !lib.activeChat) lib.activeChat = newId;
+  }
+  savePromptLibrary();
+  closePromptEdit();
+  renderPromptLib();
+  refreshPromptStatus();
+  showToast('✅ 保存成功', 'success');
+}
+
+// ===== 🔽 提示词选择器下拉 =====
+function openPromptPicker(type, event) {
+  event.stopPropagation();
+  var lib = loadPromptLibrary();
+  var prompts = lib.prompts.filter(function(p) { return p.type === type; });
+  var drop = document.getElementById('promptPickerDrop');
+  var activeId = type === 'koubo' ? lib.activeKoubo : lib.activePyq;
+  var html = '<div class="pick-divider">选择' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) + '提示词</div>';
+  for (var i = 0; i < prompts.length; i++) {
+    var p = prompts[i];
+    var isActive = p.id === activeId;
+    html += '<div class="pick-item' + (isActive ? ' active' : '') + '" onclick="pickPrompt(\'' + p.id + '\',\'' + type + '\')">' + p.name + (p.isDefault ? ' ⭐' : '') + '</div>';
+  }
+  html += '<div class="pick-divider" style="cursor:pointer;color:var(--color-primary);" onclick="pickPromptOpenLib(\'' + type + '\')">+ 管理提示词库…</div>';
+  drop.innerHTML = html;
+  // 定位
+  var rect = event.target.getBoundingClientRect();
+  drop.style.left = Math.min(rect.left, window.innerWidth - 220) + 'px';
+  drop.style.top = (rect.top - drop.offsetHeight - 4 > 0 ? rect.top - drop.offsetHeight - 4 : rect.bottom + 4) + 'px';
+  drop.classList.add('show');
+  // 点击外部关闭
+  setTimeout(function() {
+    document.addEventListener('click', closePromptPicker, { once: true });
+  }, 100);
+}
+
+function closePromptPicker() {
+  document.getElementById('promptPickerDrop').classList.remove('show');
+}
+
+function pickPrompt(id, type) {
+  setActivePrompt(type, id);
+  closePromptPicker();
+  showToast('✅ 已切换提示词', 'success');
+}
+
+function pickPromptOpenLib(type) {
+  closePromptPicker();
+  promptLibFilter = type;
+  openPromptLib();
+  setTimeout(function() {
+    var chips = document.querySelectorAll('#promptLibFilter .chip');
+    for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
+    for (var j = 0; j < chips.length; j++) {
+      if (chips[j].textContent.indexOf(type === 'koubo' ? '口播' : '朋友圈') >= 0) { chips[j].classList.add('active'); break; }
+    }
+    renderPromptLib();
+  }, 100);
+}
+
+function refreshPromptStatus() {
+  var elK = document.getElementById('activeKouboName');
+  var elP = document.getElementById('activePyqName');
+  var elC = document.getElementById('activeChatName');
+  if (elK) elK.textContent = getActivePromptName('koubo');
+  if (elP) elP.textContent = getActivePromptName('pyq');
+  if (elC) elC.textContent = getActivePromptName('chat');
+}
+
+// ===== 📋 提示词库结束 =====
 
 // ===== 表单历史快照（回滚功能）=====
 var formHistory = [];
@@ -5136,9 +5562,10 @@ function aiSendMessage() {
   // 设置发送按钮禁用状态
   var sendBtn = document.getElementById('aiSendBtn');
   if (sendBtn) sendBtn.disabled = true;
-  // 构建消息
+  // 构建消息 — 使用提示词库中当前选中的对话提示词
+  var systemPrompt = getActivePrompt('chat');
   var messages = [
-    { role: 'system', content: aiGetSystemPrompt() }
+    { role: 'system', content: systemPrompt }
   ];
   // 取最近10条对话
   var recent = aiConversation.slice(-10);
@@ -5167,54 +5594,9 @@ function aiHandleKeydown(e) {
   }, 0);
 }
 
-// AI 快捷操作：优化当前文案
-function aiQuickOptimize() {
-  var text = document.getElementById('inputArea');
-  if (!text || !text.value.trim()) {
-    showToast('⚠️ 请先在左侧输入文案内容', 'warning');
-    return;
-  }
-  if (!aiPanelOpen) toggleAIPanel();
-  aiAddChatMessage('user', '✏️ 帮我优化这段文案：\n\n' + text.value.trim());
-  aiShowLoading();
-  aiOptimizeText(text.value.trim(), function(content, err) {
-    aiHideLoading();
-    if (err) { aiAddChatMessage('assistant', '❌ ' + err); return; }
-    aiAddChatMessage('assistant', content);
-  });
-}
-
-// AI 快捷操作：提取钩子和金句
-function aiQuickExtract() {
-  var text = document.getElementById('inputArea');
-  if (!text || !text.value.trim()) {
-    showToast('⚠️ 请先在左侧输入文案内容', 'warning');
-    return;
-  }
-  if (!aiPanelOpen) toggleAIPanel();
-  aiAddChatMessage('user', '🎣 从以下文案提取钩子和金句：\n\n' + text.value.trim());
-  aiShowLoading();
-  aiExtractHooks(text.value.trim(), function(content, err) {
-    aiHideLoading();
-    if (err) { aiAddChatMessage('assistant', '❌ ' + err); return; }
-    aiAddChatMessage('assistant', content);
-  });
-}
-
-// AI 快捷操作：生成金句
-function aiQuickGenerate() {
-  if (!aiPanelOpen) toggleAIPanel();
-  aiAddChatMessage('user', '💡 请帮我生成5条适合牛酷客私厨的口播金句');
-  aiShowLoading();
-  aiGenerateGolden('牛酷客私厨 家庭烹饪', function(content, err) {
-    aiHideLoading();
-    if (err) { aiAddChatMessage('assistant', '❌ ' + err); return; }
-    aiAddChatMessage('assistant', content);
-  });
-}
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.13';
+var APP_VERSION = '2.15';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5260,7 +5642,7 @@ var VERSION_HISTORY = [
       '🤖 集成通义千问 AI 助手到主程序',
       '⚙️ 系统设置新增 AI 配置页面（API Key 加密存储）',
       '💬 浮动 AI 聊天面板（可折叠、对话历史）',
-      '✏️ 快捷操作：优化文案 / 提取钩子金句 / 生成金句',
+      '✏️ 快捷操作：写口播 / 写朋友圈 / 改时长 / AI自由对话',
       '🔌 AI 连接测试功能（系统设置内一键测试）',
       '🔐 API Key 仅储存在本地 IndexedDB，安全可靠'
     ]
@@ -5352,6 +5734,29 @@ var VERSION_HISTORY = [
       '✍️ 三处朋友圈润色提示词同步为完整点线面体结构描述',
       '🎨 按钮 padding 统一为 5px 12px，更紧凑',
       '🔧 三主题（极简白/商务蓝/科技暗色）按钮样式同步'
+    ]
+  },
+  {
+    version: '2.15',
+    date: '2026-06-15',
+    tag: '💬 AI对话接入提示词库 + 精简快捷操作',
+    desc: [
+      '💬 AI 对话支持从提示词库选取系统提示词：AI 面板底部新增「对话」选择器',
+      '🔧 精简快捷按钮：去掉「优化当前文案」「提取钩子金句」「生成金句」三个按钮',
+      '📋 提示词库新增「对话」类型：可自定义 AI 对话的系统提示词',
+      '🎯 默认对话提示词沿用原有身份/人设/知识库上下文，行为与旧版一致'
+    ]
+  },
+  {
+    version: '2.14',
+    date: '2026-06-15',
+    tag: '📋 AI 提示词库 + 统一润色入口',
+    desc: [
+      '📋 新增 AI 提示词库功能：增删查改 + 分类筛选（口播/朋友圈）',
+      '🔀 提示词可自由切换：AI 面板底部状态栏一键选择不同润色提示词',
+      '🔧 重构润色架构：6 个润色函数统一为 polishKoubo() / polishPyq() 两个入口',
+      '⚙️ 新增管理弹窗：新建/编辑/删除提示词，支持设为默认',
+      '🎨 预设 2 条默认提示词，零学习成本，行为与旧版完全一致'
     ]
   }
 ];
@@ -9013,18 +9418,11 @@ function modalQuickPolish() {
   var origHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
-    { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + content }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishKoubo(content, function(result, error) {
     btn.disabled = false;
     btn.innerHTML = origHTML;
     if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
-    var polished = result.trim();
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    document.getElementById('modal_inputArea').value = polished;
+    document.getElementById('modal_inputArea').value = result;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('✨ 口播润色完成，内容已填回编辑区', 'success');
   });
@@ -9038,20 +9436,11 @@ function modalQuickPolishMoments() {
   var origHTML = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '⏳ 润色中...';
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n⚠️ 重要：不要输出「点」「线」「面」「体」等结构标签，写流畅的纯文字段落就好\n格式要求：\n- 纯文字段落，不要任何标签或排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
-    { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + content }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishPyq(content, function(result, error) {
     btn.disabled = false;
     btn.innerHTML = origHTML;
     if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
-    var polished = result.trim();
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
-    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
-    document.getElementById('modal_inputArea').value = polished;
+    document.getElementById('modal_inputArea').value = result;
     if (typeof updateCharCount === 'function') updateCharCount();
     showToast('💬 朋友圈润色完成，内容已填回编辑区', 'success');
   });
@@ -9116,6 +9505,8 @@ document.addEventListener('DOMContentLoaded', function() {
     renderList();
     updateCompareFloatBtn();
   }
+  // 初始化提示词状态栏
+  if (typeof refreshPromptStatus === 'function') refreshPromptStatus();
   // URL 参数自动注入：?inject=golden
   var urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('inject') === 'golden') {
@@ -9449,17 +9840,10 @@ function polishCompareColumn(id) {
   var btn = col.querySelector('.compare-col-polish');
   var origHTML = btn ? btn.innerHTML : '✨ 润色';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 润色口播专用规则 =====\n你收到的是一段口播文案草稿。请进行轻量化润色：\n1. 保留原文结构（钩子→正文→金句→CTA），不要重写\n2. 只换说法、调整语气，让表达更自然口语化\n3. 句子越短越好，每行一句话\n4. 保留括号提示（如「停顿」「笑」「语气」等）\n5. 不要用JSON格式，不要加解释，不要加前缀\n6. 直接输出润色后的纯文案' },
-    { role: 'user', content: '润色以下口播文案，直接输出：\n\n' + ta.value }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishKoubo(ta.value, function(result, error) {
     if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
     if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
-    var polished = result.trim();
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    ta.value = polished;
+    ta.value = result;
     if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
     showToast('✨ 口播润色完成，已填回对比列', 'success');
   });
@@ -9474,19 +9858,10 @@ function polishCompareColumnMoments(id) {
   var btn = col.querySelector('.compare-col-polish-moments');
   var origHTML = btn ? btn.innerHTML : '💬 朋友圈';
   if (btn) { btn.disabled = true; btn.innerHTML = '⏳'; }
-  var messages = [
-    { role: 'system', content: aiGetSystemPrompt() + '\n\n===== 朋友圈润色专用规则（点线面体）=====\n你收到的是一段朋友圈文案草稿。请按「点线面体」结构优化：\n\n1. 点（钩子）：开头一句话抓注意力，让人想往下看\n2. 线（故事）：保留原文的个人经历/故事线，有转折才有看头\n3. 面（价值）：食物/产品与故事的关系，自然带出不硬推\n4. 体（升华）：结尾一个小道理，让人有共鸣\n\n⚠️ 重要：不要输出「点」「线」「面」「体」等结构标签，写流畅的纯文字段落就好\n格式要求：\n- 纯文字段落，不要任何标签或排版标记\n- 句子简短，手机屏幕友好\n- 口语化但不水，有信息量\n- 直接输出润色后的纯文案，不要解释' },
-    { role: 'user', content: '请按点线面体结构润色以下朋友圈文案：\n\n' + ta.value }
-  ];
-  aiCallAPI(messages, null, function(result, error) {
+  polishPyq(ta.value, function(result, error) {
     if (btn) { btn.disabled = false; btn.innerHTML = origHTML; }
     if (error) { showToast('⚠️ 润色失败：' + error, 'error'); return; }
-    var polished = result.trim();
-    polished = polished.replace(/^```[\s\S]*?\n/, '').replace(/\n```$/, '');
-    polished = polished.replace(/^(润色后[：:]?\s*|润色版本[：:]?\s*|优化后[：:]?\s*)/i, '');
-    polished = polished.replace(/^[点线面体][：:]\s*/gm, '');
-    polished = polished.replace(/^\d+\.\s*[点线面体][-—–]\s*/gm, '');
-    ta.value = polished;
+    ta.value = result;
     if (typeof updateCompareCharCount === 'function') updateCompareCharCount(ta);
     showToast('💬 朋友圈润色完成，已填回对比列', 'success');
   });
