@@ -6020,10 +6020,15 @@ function backupAllToCloud() {
       { label: '钩子金句', table: 'hooks_goldens', records: hooksGoldens }
     ];
 
-    function doStep(i) {
+    function doStep(i, hasError) {
       if (i >= steps.length) {
-        showToast('✅ 备份完成！已上传全部 ' + steps.length + ' 类数据', 'success');
-        if (statusEl) statusEl.textContent = '备份完成 · ' + new Date().toLocaleTimeString();
+        if (hasError) {
+          showToast('⚠️ 备份部分完成（部分数据上传失败，详见控制台）', 'warning');
+          if (statusEl) statusEl.textContent = '备份完成（部分失败）· ' + new Date().toLocaleTimeString();
+        } else {
+          showToast('✅ 备份完成！已上传全部 ' + steps.length + ' 类数据', 'success');
+          if (statusEl) statusEl.textContent = '备份完成 · ' + new Date().toLocaleTimeString();
+        }
         return;
       }
       var step = steps[i];
@@ -6035,13 +6040,15 @@ function backupAllToCloud() {
         step.table === 'app_config' ? 'key' :
         step.table === 'prompts' ? 'name,type' : undefined
       ).then(function() {
-        doStep(i + 1);
+        doStep(i + 1, hasError);
       }).catch(function(err) {
         showToast('❌ 备份失败（' + step.label + '）：' + err.message, 'error');
-        if (statusEl) statusEl.textContent = '备份失败';
+        console.error('[backup-step-failed]', step.table, err);
+        // 继续下一步（不中断链）
+        doStep(i + 1, true);
       });
     }
-    doStep(0);
+    doStep(0, false);
   });
 }
 
@@ -6668,7 +6675,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.31';
+var APP_VERSION = '2.32';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7005,6 +7012,17 @@ var VERSION_HISTORY = [
       '📊 云同步中心新增「查看云端数据」按钮，显示各表记录数',
       '🔄 新增「清空后重传」按钮：先清空云端再重新上传',
       '🔧 恢复时每次 fetch 都追加 console.error 日志'
+    ]
+  },
+  {
+    version: '2.32',
+    date: '2026-06-16',
+    tag: '☁️ 备份链条不中断 + 诊断工具上线',
+    desc: [
+      '🔧 备份链条不再因单步失败而中断，失败后继续执行后续步骤',
+      '🔧 备份结果显示「部分完成」vs「全部完成」',
+      '📊 新增「查看云端数据」显示各表记录数',
+      '🔄 新增「清空后重传」按钮'
     ]
   }
 ];
