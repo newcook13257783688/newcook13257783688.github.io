@@ -6020,7 +6020,11 @@ function backupAllToCloud() {
       if (!step.records.length) { doStep(i + 1); return; }
       if (statusEl) statusEl.textContent = '正在备份：' + step.label + '（' + step.records.length + ' 条）';
 
-      supabaseBatchUpload(step.table, step.records).then(function() {
+      supabaseBatchUpload(step.table, step.records, 50,
+        step.table === 'articles' ? 'id' :
+        step.table === 'app_config' ? 'key' :
+        step.table === 'prompts' ? 'name,type' : undefined
+      ).then(function() {
         doStep(i + 1);
       }).catch(function(err) {
         showToast('❌ 备份失败（' + step.label + '）：' + err.message, 'error');
@@ -6051,16 +6055,20 @@ function clearCloudTable(table) {
   });
 }
 
-// 分批上传（已在 supabaseRequest 上方定义）
-function supabaseBatchUpload(table, records, batchSize) {
+// 分批上传（upsert，需指定冲突字段）
+function supabaseBatchUpload(table, records, batchSize, conflictColumn) {
   batchSize = batchSize || 50;
+  var tableWithConflict = conflictColumn ? table + '?on_conflict=' + conflictColumn : table;
   return new Promise(function(resolve, reject) {
     function next(i) {
       if (i >= records.length) { resolve(); return; }
       var batch = records.slice(i, i + batchSize);
-      supabaseRequest('POST', table, batch, 'resolution=merge-duplicates')
+      supabaseRequest('POST', tableWithConflict, batch, 'resolution=merge-duplicates')
         .then(function() { next(i + batchSize); })
-        .catch(reject);
+        .catch(function(err) {
+          console.error('[supabaseBatchUpload] 批次上传失败', table, batch.slice(0, 2), err);
+          reject(err);
+        });
     }
     next(0);
   });
@@ -6549,7 +6557,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.27';
+var APP_VERSION = '2.28';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6843,6 +6851,18 @@ var VERSION_HISTORY = [
       '🔧 supabaseRequest 错误解析增强：先读 JSON，失败再读文本',
       '🔧 backupAllToCloud 去掉 clearCloudTable，改用 upsert 直写',
       '🔧 去除多余的 clearCloudTable / supabaseBatchUpload 重复定义'
+    ]
+  },
+  {
+    version: '2.28',
+    date: '2026-06-16',
+    tag: '☁️ 修复云端备份 400（upsert on_conflict）',
+    desc: [
+      '🔧 supabaseBatchUpload 新增 conflictColumn 参数',
+      '🔧 articles 表 upsert on_conflict=id',
+      '🔧 app_config 表 upsert on_conflict=key',
+      '🔧 prompts 表 upsert on_conflict=name,type（复合主键）',
+      '🔧 supabaseBatchUpload 加 console.error 错误日志'
     ]
   }
 ];
