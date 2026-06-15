@@ -6174,18 +6174,21 @@ function restoreAllFromCloud() {
     });
 
     // 3. 恢复提示词（覆盖模式：直接用云端数据替换本地）
+    console.log('[restore-prompts] 开始恢复提示词');
     fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
       headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
     }).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(records) {
+      console.log('[restore-prompts] 从云端获取到 ' + (records ? records.length : 0) + ' 条');
       if (!records || records.length === 0) {
         showToast('⚠️ 云端无提示词数据', 'info');
         checkDone();
         return;
       }
       var lib = loadPromptLibrary();
+      console.log('[restore-prompts] 本地库原有 ' + lib.prompts.length + ' 条');
       lib.prompts = [];
       records.forEach(function(rec, idx) {
         lib.prompts.push({
@@ -6196,11 +6199,13 @@ function restoreAllFromCloud() {
         });
       });
       savePromptLibrary();
+      console.log('[restore-prompts] 已保存 ' + lib.prompts.length + ' 条到本地');
       renderPromptLib();
       refreshPromptStatus();
       showToast('✅ 提示词已恢复（' + lib.prompts.length + ' 条，已覆盖本地）', 'success');
       checkDone();
     }).catch(function(err) {
+      console.error('[restore-prompts-error]', err.message);
       showToast('❌ 提示词恢复失败：' + err.message, 'error');
       checkDone();
     });
@@ -6673,7 +6678,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.38';
+var APP_VERSION = '2.39';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7076,6 +7081,15 @@ var VERSION_HISTORY = [
       '🔧 backupAllToCloud: 改用 loadPromptLibrary() 从 IndexedDB 读取提示词',
       '🔧 restoreAllFromCloud: 改用 loadPromptLibrary()+savePromptLibrary() 写回 IndexedDB',
       '🔧 去掉过时的 localStorage 读写（wzjPromptLib）'
+    ]
+  },
+  {
+    version: '2.39',
+    date: '2026-06-16',
+    tag: '🔥 修复恢复后分类筛选按钮不刷新',
+    desc: [
+      '🔧 saveCategories() 现在自动刷新分类筛选按钮和标签选择按钮',
+      '🔧 避免恢复后分类数据已保存但 UI 不更新的问题'
     ]
   }
 ];
@@ -7847,9 +7861,13 @@ function loadCategories() {
   return DEFAULT_CATEGORIES.slice();
 }
 
-// 保存分类到 IndexedDB（通过 idbSet）
+// 保存分类到 IndexedDB（通过 idbSet），同时更新 UI
 function saveCategories(cats) {
   idbSet(CAT_KEY, JSON.stringify(cats));
+  categories = cats;
+  // 刷新分类筛选按钮和标签选择按钮
+  if (typeof renderFilterButtons === 'function') renderFilterButtons();
+  if (typeof renderTagButtons === 'function') renderTagButtons();
 }
 
 // ===== 提取结尾引导（优化版）=====
