@@ -734,6 +734,97 @@
     line-height: 1.6;
   }
 
+  /* ===== 云同步管理中心 ===== */
+  .cloud-sync-center {
+    padding: 0 0 4px;
+  }
+  .cloud-sync-buttons {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .cloud-backup-btn,
+  .cloud-restore-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .cloud-backup-btn {
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.25);
+  }
+  .cloud-backup-btn:hover {
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.35);
+    transform: translateY(-2px);
+  }
+  .cloud-restore-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+  }
+  .cloud-restore-btn:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.35);
+    transform: translateY(-2px);
+  }
+  .cloud-btn-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .cloud-btn-text {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .cloud-btn-desc {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+  .cloud-sync-hint {
+    font-size: 11px;
+    color: #aaa;
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .cloud-sync-status {
+    font-size: 11px;
+    color: #1976d2;
+    line-height: 1.5;
+    min-height: 16px;
+  }
+  /* 暗色主题适配 */
+  body.theme-dark .cloud-backup-btn {
+    background: linear-gradient(135deg, #1e40af, #1e3a8a);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  body.theme-dark .cloud-backup-btn:hover {
+    background: linear-gradient(135deg, #1e3a8a, #172554);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  body.theme-dark .cloud-restore-btn {
+    background: linear-gradient(135deg, #15803d, #166534);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  body.theme-dark .cloud-restore-btn:hover {
+    background: linear-gradient(135deg, #166534, #14532d);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  body.theme-dark .cloud-sync-hint { color: #666; }
+  body.theme-dark .cloud-sync-status { color: #60a5fa; }
+
   /* ===== 编辑弹窗 ===== */
   .edit-modal-overlay {
     display: none;
@@ -3948,23 +4039,39 @@ body.theme-dark .tag-clear-btn:hover {
     <!-- ☁️ Supabase 云同步 -->
     <div class="settings-section-title">☁️ Supabase 云同步</div>
     <div class="settings-checkbox-row" style="flex-direction:column;align-items:stretch;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span style="font-size:13px;color:#555;min-width:96px;">Project URL：</span>
-        <input type="text" id="supabaseUrl" placeholder="https://xxxxxxx.supabase.co" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span style="font-size:13px;color:#555;min-width:96px;">anon key：</span>
-        <input type="password" id="supabaseKey" placeholder="sb_publishable_xxxxx" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
-        <button class="settings-add-btn" onclick="toggleSupabaseKey()" title="显示/隐藏" style="min-width:36px;">👁️</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px 12px;background:#e8f5e9;border-radius:8px;">
+        <span style="font-size:18px;">✅</span>
+        <span style="font-size:13px;color:#2e7d32;font-weight:500;">Supabase 配置已内置，无需手动填写</span>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;">
         <button class="settings-add-btn" onclick="testSupabaseConnection()">🔌 测试连接</button>
-        <button class="settings-add-btn" onclick="saveSupabaseConfig()">💾 保存</button>
-        <button class="settings-add-btn" onclick="clearSupabaseConfig()" style="background:#fee2e2;color:#dc2626;">🗑️ 清除</button>
       </div>
       <div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;" id="supabaseConfigHint">
         配置后可在提示词库管理中使用「☁️ 上传到云端 / 从云端下载」，同步提示词数据。
       </div>
+    </div>
+
+    <hr class="settings-divider">
+
+    <!-- ☁️ 云同步管理中心 -->
+    <div class="settings-section-title">☁️ 云同步管理中心</div>
+    <div class="cloud-sync-center">
+      <div class="cloud-sync-buttons">
+        <button class="cloud-backup-btn" onclick="backupAllToCloud()">
+          <span class="cloud-btn-icon">☁️</span>
+          <span class="cloud-btn-text">一键备份</span>
+          <span class="cloud-btn-desc">上传全部数据到云端</span>
+        </button>
+        <button class="cloud-restore-btn" onclick="restoreAllFromCloud()">
+          <span class="cloud-btn-icon">☁️</span>
+          <span class="cloud-btn-text">一键恢复</span>
+          <span class="cloud-btn-desc">从云端恢复全部数据</span>
+        </button>
+      </div>
+      <div class="cloud-sync-hint">
+        备份内容：① 文案数据 ② 内容分类 ③ 提示词 ④ 钩子金句库
+      </div>
+      <div class="cloud-sync-status" id="cloudSyncStatus"></div>
     </div>
 
     <hr class="settings-divider">
@@ -5660,40 +5767,23 @@ function testAIConnection() {
 
 // ===== Supabase 云同步函数 =====
 function saveSupabaseConfig() {
-  var urlInp = document.getElementById('supabaseUrl');
-  var keyInp = document.getElementById('supabaseKey');
-  if (!urlInp || !keyInp) return;
-  var url = urlInp.value.trim();
-  var key = keyInp.value.trim();
-  if (!url || !key) {
-    showToast('⚠️ 请填写 Project URL 和 anon key', 'error');
-    return;
-  }
-  localStorage.setItem('supabaseConfig', JSON.stringify({url: url, key: key}));
-  showToast('✅ Supabase 配置已保存', 'success');
+  showToast('✅ Supabase 配置已内置，无需手动保存', 'info');
 }
 
 function clearSupabaseConfig() {
-  localStorage.removeItem('supabaseConfig');
-  var urlInp = document.getElementById('supabaseUrl');
-  var keyInp = document.getElementById('supabaseKey');
-  if (urlInp) urlInp.value = '';
-  if (keyInp) keyInp.value = '';
-  showToast('🗑️ Supabase 配置已清除', 'info');
+  showToast('⚠️ Supabase 配置已内置，无法清除', 'info');
 }
 
 function toggleSupabaseKey() {
-  var inp = document.getElementById('supabaseKey');
-  if (!inp) return;
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+  showToast('ℹ️ Supabase 配置已内置', 'info');
 }
 
 function getSupabaseConfig() {
-  try {
-    var saved = localStorage.getItem('supabaseConfig');
-    if (saved) return JSON.parse(saved);
-  } catch(e) {}
-  return null;
+  // ✅ Supabase 配置已内置，无需手动填写
+  return {
+    url: 'https://kdiyhamfotcdddwfshgd.supabase.co',
+    key: 'sb_publishable_eZDwKf3aHWLfZacXHWi1gg_mGbXs_lm'
+  };
 }
 
 function testSupabaseConnection() {
@@ -5724,7 +5814,7 @@ function testSupabaseConnection() {
   });
 }
 
-function supabaseRequest(method, table, data) {
+function supabaseRequest(method, table, data, prefer) {
   var cfg = getSupabaseConfig();
   if (!cfg || !cfg.url || !cfg.key) return Promise.reject(new Error('未配置 Supabase'));
   var url = cfg.url + '/rest/v1/' + table;
@@ -5734,7 +5824,7 @@ function supabaseRequest(method, table, data) {
       'apikey': cfg.key,
       'Authorization': 'Bearer ' + cfg.key,
       'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
+      'Prefer': prefer || 'return=minimal'
     }
   };
   if (data && (method === 'POST' || method === 'PATCH')) {
@@ -5839,6 +5929,269 @@ function downloadPromptLibFromCloud() {
   });
 }
 // ===== Supabase 云同步函数结束 =====
+
+// ===== 一键备份/恢复（四样数据）=====
+function backupAllToCloud() {
+  var cfg = getSupabaseConfig();
+  if (!cfg) { showToast('⚠️ 请先配置 Supabase', 'error'); return; }
+  customConfirm('确定将全部数据一键备份到云端？\n\n包含：① 文案数据 ② 内容分类 ③ 提示词 ④ 钩子金句库\n\n（云端已有数据将被覆盖）').then(function(ok) {
+    if (!ok) return;
+    var statusEl = document.getElementById('cloudSyncStatus');
+    if (statusEl) statusEl.textContent = '正在备份...';
+    showToast('☁️ 正在备份全部数据...', 'info');
+
+    // 加载四样数据
+    var db = loadDB();
+    loadHookGoldenData(); // 确保钩子金句已加载
+
+    // 1. 文案数据 → articles 表
+    var articles = db.map(function(item) {
+      return {
+        id: item.id,
+        title: item.title || '',
+        content: item.content || '',
+        tags: JSON.stringify(item.tags || []),
+        hook: item.hook || '',
+        golden: item.golden || '',
+        cta: item.cta || '',
+        topics: JSON.stringify(item.topics || []),
+        shot: item.shot ? true : false,
+        charCount: item.charCount || 0,
+        timeEstimate: item.timeEstimate || 0,
+        createdAt: item.createdAt || '',
+        updatedAt: item.updatedAt || ''
+      };
+    });
+
+    // 2. 内容分类 → app_config 表
+    var categoriesRecord = { key: 'categories', value: JSON.stringify(categories) };
+
+    // 3. 提示词 → prompts 表
+    var lib = { prompts: [] };
+    try {
+      var saved = localStorage.getItem('wzjPromptLib');
+      if (saved) lib = JSON.parse(saved);
+    } catch(e) {}
+    var prompts = (lib.prompts || []).map(function(p) {
+      return { name: p.name, type: p.type || 'chat', content: p.content };
+    });
+
+    // 4. 钩子金句 → hooks_goldens 表
+    var hooksGoldens = [];
+    (HG_DATA.hooks || []).forEach(function(item) {
+      hooksGoldens.push({ type: 'hook', content: item.content || '', category: item.category || '', scenario: item.scenario || '', tags: JSON.stringify(item.tags || []) });
+    });
+    (HG_DATA.goldens || []).forEach(function(item) {
+      hooksGoldens.push({ type: 'golden', content: item.content || '', category: item.category || '', scenario: item.scenario || '', tags: JSON.stringify(item.tags || []) });
+    });
+
+    // 依次备份（articles → categories → prompts → hooks_goldens）
+    var steps = [
+      { label: '文案数据', table: 'articles', records: articles },
+      { label: '内容分类', table: 'app_config', records: [categoriesRecord] },
+      { label: '提示词', table: 'prompts', records: prompts },
+      { label: '钩子金句', table: 'hooks_goldens', records: hooksGoldens }
+    ];
+
+    function doStep(i) {
+      if (i >= steps.length) {
+        showToast('✅ 备份完成！已上传全部 ' + steps.length + ' 类数据', 'success');
+        if (statusEl) statusEl.textContent = '备份完成 · ' + new Date().toLocaleTimeString();
+        return;
+      }
+      var step = steps[i];
+      if (!step.records.length) { doStep(i + 1); return; }
+      if (statusEl) statusEl.textContent = '正在备份：' + step.label + '（' + step.records.length + ' 条）';
+
+      // 先清空云端该表数据，再上传（避免重复）
+      clearCloudTable(step.table).then(function() {
+        return supabaseBatchUpload(step.table, step.records);
+      }).then(function() {
+        doStep(i + 1);
+      }).catch(function(err) {
+        showToast('❌ 备份失败（' + step.label + '）：' + err.message, 'error');
+        if (statusEl) statusEl.textContent = '备份失败';
+      });
+    }
+    doStep(0);
+  });
+}
+
+// 清空云端某表全部数据
+function clearCloudTable(table) {
+  var cfg = getSupabaseConfig();
+  return fetch(cfg.url + '/rest/v1/' + table + '?select=*', {
+    headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+  }).then(function(r) {
+    if (!r.ok) return []; // 表可能为空
+    return r.json();
+  }).then(function(records) {
+    if (!records.length) return Promise.resolve();
+    // 逐条删除
+    var deletes = records.map(function(rec) {
+      var idKey = rec.id !== undefined ? 'id' : 'key';
+      var idVal = rec[idKey];
+      return supabaseRequest('DELETE', table + '?' + idKey + '=eq.' + encodeURIComponent(idVal));
+    });
+    return Promise.all(deletes);
+  });
+}
+
+// 分批上传（已在 supabaseRequest 上方定义）
+function supabaseBatchUpload(table, records, batchSize) {
+  batchSize = batchSize || 50;
+  return new Promise(function(resolve, reject) {
+    function next(i) {
+      if (i >= records.length) { resolve(); return; }
+      var batch = records.slice(i, i + batchSize);
+      supabaseRequest('POST', table, batch, 'resolution=merge-duplicates')
+        .then(function() { next(i + batchSize); })
+        .catch(reject);
+    }
+    next(0);
+  });
+}
+
+function restoreAllFromCloud() {
+  var cfg = getSupabaseConfig();
+  if (!cfg) { showToast('⚠️ 请先配置 Supabase', 'error'); return; }
+  customConfirm('确定从云端恢复全部数据到本地？\n\n包含：① 文案数据 ② 内容分类 ③ 提示词 ④ 钩子金句库\n\n（本地数据将被云端数据覆盖）').then(function(ok) {
+    if (!ok) return;
+    var statusEl = document.getElementById('cloudSyncStatus');
+    if (statusEl) statusEl.textContent = '正在恢复...';
+    showToast('☁️ 正在从云端恢复全部数据...', 'info');
+
+    var done = 0;
+    var total = 4;
+
+    function checkDone() {
+      done++;
+      if (done >= total) {
+        showToast('✅ 恢复完成！已从云端恢复全部 ' + total + ' 类数据', 'success');
+        if (statusEl) statusEl.textContent = '恢复完成 · ' + new Date().toLocaleTimeString();
+        renderList();
+        renderHookGoldenCategories();
+        renderHookGoldenList();
+      }
+    }
+
+    // 1. 恢复文案数据
+    fetch(cfg.url + '/rest/v1/articles?select=*', {
+      headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(records) {
+      var db = records.map(function(rec) {
+        return {
+          id: rec.id,
+          title: rec.title || '',
+          content: rec.content || '',
+          tags: (function() { try { return JSON.parse(rec.tags); } catch(e) { return []; } })(),
+          hook: rec.hook || '',
+          golden: rec.golden || '',
+          cta: rec.cta || '',
+          topics: (function() { try { return JSON.parse(rec.topics); } catch(e) { return ''; } })(),
+          shot: rec.shot ? true : false,
+          charCount: rec.charCount || 0,
+          timeEstimate: rec.timeEstimate || 0,
+          createdAt: rec.createdAt || '',
+          updatedAt: rec.updatedAt || ''
+        };
+      });
+      saveDB(db);
+      checkDone();
+    }).catch(function(err) {
+      showToast('❌ 恢复失败（文案数据）：' + err.message, 'error');
+      checkDone();
+    });
+
+    // 2. 恢复内容分类
+    fetch(cfg.url + '/rest/v1/app_config?key=eq.categories&select=key,value', {
+      headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(records) {
+      if (records && records.length > 0) {
+        try {
+          var cats = JSON.parse(records[0].value);
+          if (Array.isArray(cats)) {
+            categories = cats;
+            saveCategories(cats);
+          }
+        } catch(e) {}
+      }
+      checkDone();
+    }).catch(function(err) {
+      showToast('⚠️ 内容分类恢复失败（可能云端无数据）', 'error');
+      checkDone();
+    });
+
+    // 3. 恢复提示词
+    fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
+      headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(records) {
+      var lib = { prompts: [] };
+      try {
+        var saved = localStorage.getItem('wzjPromptLib');
+        if (saved) lib = JSON.parse(saved);
+      } catch(e) {}
+      // 去重：按名称+类型
+      var existKeys = {};
+      (lib.prompts || []).forEach(function(p) { existKeys[p.name + '|' + (p.type || 'chat')] = true; });
+      var added = 0;
+      records.forEach(function(rec) {
+        var key = (rec.name || '') + '|' + (rec.type || 'chat');
+        if (!existKeys[key]) {
+          lib.prompts.push({ id: 'cloud_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name: rec.name, type: rec.type || 'chat', content: rec.content });
+          existKeys[key] = true;
+          added++;
+        }
+      });
+      localStorage.setItem('wzjPromptLib', JSON.stringify(lib));
+      renderPromptLib();
+      refreshPromptStatus();
+      checkDone();
+    }).catch(function(err) {
+      showToast('⚠️ 提示词恢复失败（可能云端无数据）', 'error');
+      checkDone();
+    });
+
+    // 4. 恢复钩子金句
+    fetch(cfg.url + '/rest/v1/hooks_goldens?select=*', {
+      headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
+    }).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function(records) {
+      var hooks = [];
+      var goldens = [];
+      records.forEach(function(rec) {
+        var item = {
+          content: rec.content || '',
+          category: rec.category || '',
+          scenario: rec.scenario || '',
+          tags: (function() { try { return JSON.parse(rec.tags); } catch(e) { return []; } })()
+        };
+        if (rec.type === 'hook') hooks.push(item);
+        else goldens.push(item);
+      });
+      idbSet('wzjHooks', JSON.stringify(hooks));
+      idbSet('wzjGoldens', JSON.stringify(goldens));
+      HG_DATA.hooks = hooks;
+      HG_DATA.goldens = goldens;
+      checkDone();
+    }).catch(function(err) {
+      showToast('⚠️ 钩子金句恢复失败（可能云端无数据）', 'error');
+      checkDone();
+    });
+  });
+}
+// ===== 一键备份/恢复结束 =====
 
 // ===== AI 聊天面板函数 =====
 var aiPanelOpen = false;
@@ -6182,7 +6535,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.24';
+var APP_VERSION = '2.26';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6443,6 +6796,28 @@ var VERSION_HISTORY = [
       '☁️ 提示词库管理弹窗新增「上传到云端/从云端下载」按钮',
       '🔌 连接测试功能：一键验证 Supabase 连通性',
       '💾 配置保存到 localStorage，支持显示/隐藏 Key'
+    ]
+  },
+  {
+    version: '2.25',
+    date: '2026-06-16',
+    tag: '☁️ 云同步管理中心：一键备份/恢复全部数据',
+    desc: [
+      '☁️ 系统设置新增「云同步管理中心」：一键备份 + 一键恢复',
+      '☁️ 备份内容：①文案数据 ②内容分类 ③提示词 ④钩子金句库',
+      '🔧 supabaseRequest 支持 upsert（resolution=merge-duplicates）',
+      '🔧 新增 supabaseBatchUpload / clearCloudTable 通用函数'
+    ]
+  },
+  {
+    version: '2.26',
+    date: '2026-06-16',
+    tag: '☁️ Supabase 配置内置化',
+    desc: [
+      '☁️ Supabase URL + anon key 已硬编码进主程序',
+      '☁️ 系统设置隐藏输入框，显示「已内置」提示',
+      '🔧 getSupabaseConfig() 直接返回内置配置',
+      '🔧 save/clear/toggleSupabaseKey() 改为提示函数'
     ]
   }
 ];
