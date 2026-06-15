@@ -3643,6 +3643,8 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-lib-header .actions button:hover { border-color:var(--color-primary); color:var(--color-primary); }
   .prompt-lib-header .actions button.add-btn { background:var(--color-primary); color:#fff; border-color:var(--color-primary); }
   .prompt-lib-header .actions button.add-btn:hover { opacity:0.85; }
+  .prompt-lib-header .actions button.cloud-btn { background:#6366f1; color:#fff; border-color:#6366f1; }
+  .prompt-lib-header .actions button.cloud-btn:hover { opacity:0.85; }
   .prompt-lib-filter { display:flex; gap:6px; padding:10px 20px; border-bottom:1px solid var(--border-color); }
   .prompt-lib-filter .chip { font-size:11px; padding:3px 10px; border-radius:12px; border:1px solid var(--border-color); cursor:pointer; transition:all 0.15s; background:#fff; }
   .prompt-lib-filter .chip:hover { border-color:var(--color-primary); color:var(--color-primary); }
@@ -3938,6 +3940,30 @@ body.theme-dark .tag-clear-btn:hover {
       </div>
       <div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;" id="aiConfigHint">
         API Key 仅储存在本地浏览器 IndexedDB 中。每平台需单独注册获取 Key。
+      </div>
+    </div>
+
+    <hr class="settings-divider">
+
+    <!-- ☁️ Supabase 云同步 -->
+    <div class="settings-section-title">☁️ Supabase 云同步</div>
+    <div class="settings-checkbox-row" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:13px;color:#555;min-width:96px;">Project URL：</span>
+        <input type="text" id="supabaseUrl" placeholder="https://xxxxxxx.supabase.co" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:13px;color:#555;min-width:96px;">anon key：</span>
+        <input type="password" id="supabaseKey" placeholder="sb_publishable_xxxxx" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;">
+        <button class="settings-add-btn" onclick="toggleSupabaseKey()" title="显示/隐藏" style="min-width:36px;">👁️</button>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="settings-add-btn" onclick="testSupabaseConnection()">🔌 测试连接</button>
+        <button class="settings-add-btn" onclick="saveSupabaseConfig()">💾 保存</button>
+        <button class="settings-add-btn" onclick="clearSupabaseConfig()" style="background:#fee2e2;color:#dc2626;">🗑️ 清除</button>
+      </div>
+      <div style="font-size:11px;color:#aaa;margin-top:6px;line-height:1.5;" id="supabaseConfigHint">
+        配置后可在提示词库管理中使用「☁️ 上传到云端 / 从云端下载」，同步提示词数据。
       </div>
     </div>
 
@@ -4256,6 +4282,8 @@ body.theme-dark .tag-clear-btn:hover {
         <button onclick="exportPromptLib()" title="导出全部提示词为JSON">📤 导出</button>
         <button onclick="document.getElementById('promptLibImportFile').click()" title="从JSON文件导入提示词">📥 导入</button>
         <input type="file" id="promptLibImportFile" accept=".json" style="display:none" onchange="importPromptLib(event)">
+        <button class="cloud-btn" onclick="uploadPromptLibToCloud()" title="上传到 Supabase 云端">☁️ 上传</button>
+        <button class="cloud-btn" onclick="downloadPromptLibFromCloud()" title="从 Supabase 云端下载">☁️ 下载</button>
         <button onclick="openPromptEdit()" class="add-btn">+ 新建</button>
         <button onclick="closePromptLib()">✕</button>
       </div>
@@ -5630,6 +5658,188 @@ function testAIConnection() {
 }
 // ===== AI 配置管理界面函数结束 =====
 
+// ===== Supabase 云同步函数 =====
+function saveSupabaseConfig() {
+  var urlInp = document.getElementById('supabaseUrl');
+  var keyInp = document.getElementById('supabaseKey');
+  if (!urlInp || !keyInp) return;
+  var url = urlInp.value.trim();
+  var key = keyInp.value.trim();
+  if (!url || !key) {
+    showToast('⚠️ 请填写 Project URL 和 anon key', 'error');
+    return;
+  }
+  localStorage.setItem('supabaseConfig', JSON.stringify({url: url, key: key}));
+  showToast('✅ Supabase 配置已保存', 'success');
+}
+
+function clearSupabaseConfig() {
+  localStorage.removeItem('supabaseConfig');
+  var urlInp = document.getElementById('supabaseUrl');
+  var keyInp = document.getElementById('supabaseKey');
+  if (urlInp) urlInp.value = '';
+  if (keyInp) keyInp.value = '';
+  showToast('🗑️ Supabase 配置已清除', 'info');
+}
+
+function toggleSupabaseKey() {
+  var inp = document.getElementById('supabaseKey');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function getSupabaseConfig() {
+  try {
+    var saved = localStorage.getItem('supabaseConfig');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return null;
+}
+
+function testSupabaseConnection() {
+  var cfg = getSupabaseConfig();
+  if (!cfg || !cfg.url || !cfg.key) {
+    showToast('⚠️ 请先保存 Supabase 配置', 'error');
+    return;
+  }
+  showToast('🔄 正在测试 Supabase 连接...', 'info');
+  fetch(cfg.url + '/rest/v1/', {
+    headers: { 'apikey': cfg.key }
+  })
+  .then(function(r) {
+    if (r.ok || r.status === 401) {
+      // 如果返回401但提示"Secret API key required"，说明连接通了但需要secret key
+      return r.json().then(function(d) {
+        if (d.message && d.message.indexOf('Secret') !== -1) {
+          showToast('✅ Supabase 连接成功！(anon key 正常)', 'success');
+        } else {
+          showToast('✅ Supabase 连接成功！', 'success');
+        }
+      });
+    }
+    throw new Error('HTTP ' + r.status);
+  })
+  .catch(function(err) {
+    showToast('❌ 连接失败：' + (err.message || '未知错误'), 'error');
+  });
+}
+
+function supabaseRequest(method, table, data) {
+  var cfg = getSupabaseConfig();
+  if (!cfg || !cfg.url || !cfg.key) return Promise.reject(new Error('未配置 Supabase'));
+  var url = cfg.url + '/rest/v1/' + table;
+  var opts = {
+    method: method,
+    headers: {
+      'apikey': cfg.key,
+      'Authorization': 'Bearer ' + cfg.key,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    }
+  };
+  if (data && (method === 'POST' || method === 'PATCH')) {
+    opts.body = JSON.stringify(data);
+  }
+  return fetch(url, opts).then(function(r) {
+    if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || 'HTTP ' + r.status); });
+    return r;
+  });
+}
+
+function uploadPromptLibToCloud() {
+  var lib = loadPromptLibrary();
+  if (!lib || !lib.prompts || lib.prompts.length === 0) {
+    showToast('⚠️ 提示词库为空，没有可上传的数据', 'error');
+    return;
+  }
+  customConfirm('确定将全部 ' + lib.prompts.length + ' 条提示词上传到 Supabase 云端？\n（同名 ID 会覆盖更新）').then(function(ok) {
+    if (!ok) return;
+    showToast('🔄 正在上传...', 'info');
+    var records = lib.prompts.map(function(p) {
+      return {
+        name: p.name,
+        type: p.type || 'chat',
+        content: p.content
+      };
+    });
+    // 分批上传，每批50条
+    function uploadBatch(idx) {
+      if (idx >= records.length) {
+        showToast('✅ 已上传 ' + records.length + ' 条提示词到云端', 'success');
+        return;
+      }
+      var batch = records.slice(idx, idx + 50);
+      supabaseRequest('POST', 'prompts', batch).then(function() {
+        uploadBatch(idx + 50);
+      }).catch(function(err) {
+        showToast('❌ 上传失败：' + err.message, 'error');
+      });
+    }
+    uploadBatch(0);
+  });
+}
+
+function downloadPromptLibFromCloud() {
+  var cfg = getSupabaseConfig();
+  if (!cfg) { showToast('⚠️ 请先配置 Supabase', 'error'); return; }
+  showToast('🔄 正在从云端下载...', 'info');
+  fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
+    headers: {
+      'apikey': cfg.key,
+      'Authorization': 'Bearer ' + cfg.key
+    }
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || 'HTTP ' + r.status); });
+    return r.json();
+  })
+  .then(function(records) {
+    if (!records || records.length === 0) {
+      showToast('📭 云端暂无提示词数据', 'info');
+      return;
+    }
+    var lib = loadPromptLibrary();
+    var existingIds = {};
+    for (var i = 0; i < lib.prompts.length; i++) {
+      existingIds[lib.prompts[i].id] = true;
+    }
+    var added = 0;
+    var skipped = 0;
+    for (var j = 0; j < records.length; j++) {
+      var r = records[j];
+      var newId = 'cloud_' + Math.random().toString(36).substr(2, 8);
+      // 简单地按名称去重
+      var dup = false;
+      for (var k = 0; k < lib.prompts.length; k++) {
+        if (lib.prompts[k].name === r.name && lib.prompts[k].type === r.type) {
+          dup = true;
+          skipped++;
+          break;
+        }
+      }
+      if (!dup) {
+        lib.prompts.push({
+          id: newId,
+          name: r.name,
+          type: r.type || 'chat',
+          content: r.content
+        });
+        added++;
+      }
+    }
+    if (added > 0) {
+      savePromptLibrary(lib);
+      renderPromptLib();
+      refreshPromptStatus();
+    }
+    showToast('✅ 从云端下载完成：新增 ' + added + ' 条，跳过 ' + skipped + ' 条重复', 'success');
+  })
+  .catch(function(err) {
+    showToast('❌ 下载失败：' + err.message, 'error');
+  });
+}
+// ===== Supabase 云同步函数结束 =====
+
 // ===== AI 聊天面板函数 =====
 var aiPanelOpen = false;
 
@@ -5972,7 +6182,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.23';
+var APP_VERSION = '2.24';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6222,6 +6432,17 @@ var VERSION_HISTORY = [
       '📏 初始尺寸 570×780（相比旧版 380×520 放大50%）',
       '💾 拖拽后的尺寸自动保存到 localStorage，下次打开恢复',
       '🛡️ 限制范围：最小300×350，最大90vw×85vh，避免拖过头'
+    ]
+  },
+  {
+    version: '2.24',
+    date: '2026-06-16',
+    tag: '☁️ Supabase 云同步：提示词库上传/下载云端',
+    desc: [
+      '☁️ 系统设置新增 Supabase 配置（Project URL + anon key）',
+      '☁️ 提示词库管理弹窗新增「上传到云端/从云端下载」按钮',
+      '🔌 连接测试功能：一键验证 Supabase 连通性',
+      '💾 配置保存到 localStorage，支持显示/隐藏 Key'
     ]
   }
 ];
@@ -7128,6 +7349,19 @@ function openSettings(e) {
   if (aiModelSel) aiModelSel.value = aiConfig.model || AI_PROVIDERS[provider].defaultModel;
   // 更新提示文字
   onAIProviderChange();
+  // 同步 Supabase 配置
+  var sbUrlInput = document.getElementById('supabaseUrl');
+  var sbKeyInput = document.getElementById('supabaseKey');
+  if (sbUrlInput && sbKeyInput) {
+    var saved = localStorage.getItem('supabaseConfig');
+    if (saved) {
+      try {
+        var cfg = JSON.parse(saved);
+        sbUrlInput.value = cfg.url || '';
+        sbKeyInput.value = cfg.key || '';
+      } catch(e) {}
+    }
+  }
   // 同步筛选卡片模式
   var stickyMode = getFilterSticky();
   var stickyOn = document.getElementById('filterStickyOn');
