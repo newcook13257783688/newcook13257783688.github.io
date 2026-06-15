@@ -6327,20 +6327,6 @@ function clearCloudAndReUpload() {
     clearNext(0);
   });
 }
-        var parts = range.split('/');
-        var count = parseInt(parts[1] || parts[0] || '0', 10);
-        if (count === 0) { clearNext(idx + 1); return; }
-        // 批量删除（每次最多 1000 条）
-        supabaseRequest('DELETE', table + '?limit=1000')
-          .then(function() { clearNext(idx + 1); })
-          .catch(function(err) { clearNext(idx + 1); });
-      }).catch(function(err) {
-        clearNext(idx + 1);
-      });
-    }
-    clearNext(0);
-  });
-}
 // ===== 云端诊断工具结束 =====
 
 // ===== AI 聊天面板函数 =====
@@ -6685,7 +6671,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.33';
+var APP_VERSION = '2.34';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7043,6 +7029,15 @@ var VERSION_HISTORY = [
       '🔧 清空云端改用正确 Supabase DELETE 语法（?id=neq. / ?id=gt.0）',
       '🔧 查看云端数据改用 JS 数组计数，修复 content-range 解析问题',
       '🔧 清空链条也支持单步失败不中断'
+    ]
+  },
+  {
+    version: '2.34',
+    date: '2026-06-16',
+    tag: '☁️ 修复 v2.33 遗留的旧代码碎片导致 JS 语法错误',
+    desc: [
+      '🔧 删除清空函数残留的旧版代码段（导致 JS 解析异常，浏览器用缓存运行）',
+      '🔧 清空云端现在真正使用正确的 Supabase DELETE 语法'
     ]
   }
 ];
