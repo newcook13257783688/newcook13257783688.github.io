@@ -5115,7 +5115,8 @@ function exportPromptLib() {
     prompts: lib.prompts,
     activeKoubo: lib.activeKoubo,
     activePyq: lib.activePyq,
-    activeChat: lib.activeChat
+    activeChat: lib.activeChat,
+    activeBaoxi: lib.activeBaoxi
   };
   var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   var url = URL.createObjectURL(blob);
@@ -5844,7 +5845,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.20';
+var APP_VERSION = '2.21';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6064,6 +6065,15 @@ var VERSION_HISTORY = [
       '🔧 修复版本号硬编码问题：topbar 版本号改为从 APP_VERSION 动态读取',
       '🔧 修复 VERSION_HISTORY 顺序：v2.19 移正到数组末尾，「当前」标记正确',
       '🔧 修复 AI 对话框误报「未绑定 API」：chat 入口改用多供应商 Key 检测'
+    ]
+  },
+  {
+    version: '2.21',
+    date: '2026-06-15',
+    tag: '📋 报喜提示词独立JSON + 导出补全activeBaoxi',
+    desc: [
+      '📋 5条报喜提示词导出为独立 JSON 文件，可直接导入提示词库',
+      '🔧 修复导出函数遗漏 activeBaoxi 字段，导入导出现在完整一致'
     ]
   }
 ];
