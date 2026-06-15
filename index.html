@@ -3723,7 +3723,7 @@ body.theme-dark .tag-clear-btn:hover {
 
   /* ===== 提示词库 ===== */
   /* 管理弹窗 */
-  .prompt-lib-overlay { display:none; position:fixed; z-index:10000; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
+  .prompt-lib-overlay { display:none; position:fixed; z-index:100003; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
   .prompt-lib-overlay.show { display:flex; }
   .prompt-lib-box { background:#fff; border-radius:12px; width:660px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); overflow:hidden; animation: promptLibIn 0.25s ease; }
   @keyframes promptLibIn { from{opacity:0;transform:translateY(20px) scale(0.96);} to{opacity:1;transform:translateY(0) scale(1);} }
@@ -6694,7 +6694,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.46';
+var APP_VERSION = '2.47';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7174,6 +7174,15 @@ var VERSION_HISTORY = [
     desc: [
       '📋 提示词库顶部新增「🔄 初始化」按钮',
       '🔧 只补充缺失的默认提示词，不会覆盖用户已有的自定义提示词'
+    ]
+  },
+  {
+    version: '2.47',
+    date: '2026-06-16',
+    tag: '🎨 提示词库弹窗 z-index 提升到最顶层',
+    desc: [
+      '🎨 提示词库弹窗 z-index 从 10000 提升到 100003',
+      '🎨 确保提示词库弹窗在所有弹窗之上（包括 AI 面板）'
     ]
   }
 ];
