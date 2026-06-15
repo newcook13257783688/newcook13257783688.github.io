@@ -3629,6 +3629,7 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-card .type-badge.koubo { background:#eef2ff; color:#4f46e5; }
   .prompt-card .type-badge.pyq { background:#fdf2f8; color:#db2777; }
   .prompt-card .type-badge.chat { background:#ecfdf5; color:#059669; }
+  .prompt-card .type-badge.baoxi { background:#fff7ed; color:#ea580c; }
   .prompt-card .info { flex:1; min-width:0; }
   .prompt-card .info .name { font-size:13px; font-weight:500; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
   .prompt-card .info .name .star { color:#f59e0b; font-size:12px; }
@@ -3685,6 +3686,7 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-dark .prompt-card .type-badge.koubo { background:#1e1b4b; color:#a78bfa; }
   body.theme-dark .prompt-card .type-badge.pyq { background:#4c1d3d; color:#f472b6; }
   body.theme-dark .prompt-card .type-badge.chat { background:#064e3b; color:#6ee7b7; }
+  body.theme-dark .prompt-card .type-badge.baoxi { background:#431407; color:#fdba74; }
   body.theme-dark .prompt-card.default-card { border-color:#4f46e5; background:#1a1a2e; }
   body.theme-dark .prompt-card .card-actions button { background:#2a2a3a; border-color:#444; color:#ccc; }
   body.theme-dark .prompt-card .card-actions button:hover { border-color:#4f46e5; color:#a78bfa; }
@@ -4052,6 +4054,7 @@ body.theme-dark .tag-clear-btn:hover {
     <div class="ai-quick-actions">
       <button onclick="aiQuickWrite('koubo')">📝 写口播</button>
       <button onclick="aiQuickWrite('pyq')">📱 写朋友圈</button>
+      <button onclick="aiQuickBaoxi()">📣 报喜</button>
       <button onclick="aiQuickRewriteTime()">🔄 改时长</button>
       <button onclick="openPromptLib()" style="font-size:10px;opacity:0.7;" title="管理提示词库">📋</button>
     </div>
@@ -4227,6 +4230,7 @@ body.theme-dark .tag-clear-btn:hover {
       <span class="chip" onclick="filterPromptLib('koubo',this)">🟢 口播</span>
       <span class="chip" onclick="filterPromptLib('pyq',this)">🟣 朋友圈</span>
       <span class="chip" onclick="filterPromptLib('chat',this)">💬 对话</span>
+      <span class="chip" onclick="filterPromptLib('baoxi',this)">📣 报喜</span>
     </div>
     <div class="prompt-lib-body" id="promptLibBody"></div>
   </div>
@@ -4981,11 +4985,17 @@ function loadPromptLibrary() {
     prompts: [
       { id: 'p_default_koubo', name: '口播轻量化润色（默认）', type: 'koubo', content: DEFAULT_PROMPTS.koubo, isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
       { id: 'p_default_pyq', name: '朋友圈点线面体润色（默认）', type: 'pyq', content: DEFAULT_PROMPTS.pyq, isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-      { id: 'p_default_chat', name: 'AI对话（默认）', type: 'chat', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : ''), isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+      { id: 'p_default_chat', name: 'AI对话（默认）', type: 'chat', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : ''), isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_baoxi1', name: '今日战报（报喜模板）', type: 'baoxi', content: "===== 报喜模板：今日战报 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今日战报」+ 出餐X份 + 售卖情况（全卖完/剩X份）\n2. 中间：一句话点评今天最受欢迎的菜，有细节感\n3. 结尾：「报喜完毕，晚安～」\n\n要求：口语化、接地气，像跟朋友聊天。3-5句话，不要太长。直接输出纯文案，不要解释。", isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_baoxi2', name: '客户原话（报喜模板）', type: 'baoxi', content: "===== 报喜模板：客户原话 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今天有个客户说：」+ 转述或直接引用客户好评\n2. 中间：你听到这个评价的真实感受（一句话，别太煽情）\n3. 结尾：「报喜了哈哈～」\n\n要求：客户原话越原汁原味越好，感受要真实。3-5句话。直接输出纯文案。", isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_baoxi3', name: '意外之喜（报喜模板）', type: 'baoxi', content: "===== 报喜模板：意外之喜/小故事 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今天发生了一件事：」+ 讲一个小故事（邻居闻到味、路人问价、孩子爱吃等）\n2. 中间：故事的经过，尽量简短2-3句，有细节\n3. 结尾：一个简单的感受 +「好梦各位。」\n\n要求：必须是真实发生的小事，不带广告目的就是分享。口语化，有画面感。直接输出纯文案。", isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_baoxi4', name: '复购感动（报喜模板）', type: 'baoxi', content: "===== 报喜模板：复购感动 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「有个客户这次是第X次订了」+ 次数\n2. 中间：一个细节——他每次都点什么菜、有什么偏好、住多远也要点等\n3. 结尾：简单感受，点到为止 +「今晚报喜就这条。」\n\n要求：细节越具体越真，让人感受到老客户的信任。3-5句话。直接输出纯文案。", isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+      { id: 'p_default_baoxi5', name: '里程碑（报喜模板）', type: 'baoxi', content: "===== 报喜模板：里程碑 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「一个小里程碑：今天第X份出餐」或其他里程碑内容\n2. 中间：回顾一句——之前怎么开始的，简短有力\n3. 结尾：感谢一句（真诚不空泛）+ 预告明天\n\n要求：每周一次，有仪式感。感谢要具体，预告要有钩子。3-5句话。直接输出纯文案。", isDefault: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
     ],
     activeKoubo: 'p_default_koubo',
     activePyq: 'p_default_pyq',
-    activeChat: 'p_default_chat'
+    activeChat: 'p_default_chat',
+    activeBaoxi: 'p_default_baoxi1'
   };
   savePromptLibrary();
   return promptLibraryCache;
@@ -4997,15 +5007,36 @@ function savePromptLibrary() {
 
 function getActivePrompt(type) {
   var lib = loadPromptLibrary();
-  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
-  if (!activeId) return type === 'chat' ? (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') : DEFAULT_PROMPTS[type];
+  var activeId;
+  if (type === 'koubo') activeId = lib.activeKoubo;
+  else if (type === 'pyq') activeId = lib.activePyq;
+  else if (type === 'chat') activeId = lib.activeChat;
+  else activeId = lib.activeBaoxi;
+  if (!activeId) {
+    if (type === 'chat') return (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '');
+    if (type === 'baoxi') {
+      var def = lib.prompts.find(function(p) { return p.type === 'baoxi' && p.isDefault; });
+      return def ? def.content : '';
+    }
+    return DEFAULT_PROMPTS[type] || '';
+  }
   var found = lib.prompts.find(function(p) { return p.id === activeId; });
-  return found ? found.content : (type === 'chat' ? (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '') : DEFAULT_PROMPTS[type]);
+  if (found) return found.content;
+  if (type === 'chat') return (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : '');
+  if (type === 'baoxi') {
+    var def2 = lib.prompts.find(function(p) { return p.type === 'baoxi' && p.isDefault; });
+    return def2 ? def2.content : '';
+  }
+  return DEFAULT_PROMPTS[type] || '';
 }
 
 function getActivePromptName(type) {
   var lib = loadPromptLibrary();
-  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
+  var activeId;
+  if (type === 'koubo') activeId = lib.activeKoubo;
+  else if (type === 'pyq') activeId = lib.activePyq;
+  else if (type === 'chat') activeId = lib.activeChat;
+  else activeId = lib.activeBaoxi;
   if (!activeId) return '默认';
   var found = lib.prompts.find(function(p) { return p.id === activeId; });
   return found ? found.name : '默认';
@@ -5015,7 +5046,8 @@ function setActivePrompt(type, promptId) {
   var lib = loadPromptLibrary();
   if (type === 'koubo') lib.activeKoubo = promptId;
   else if (type === 'pyq') lib.activePyq = promptId;
-  else lib.activeChat = promptId;
+  else if (type === 'chat') lib.activeChat = promptId;
+  else lib.activeBaoxi = promptId;
   savePromptLibrary();
   refreshPromptStatus();
 }
@@ -5125,6 +5157,7 @@ function importPromptLib(event) {
       if (data.activeKoubo) lib.activeKoubo = data.activeKoubo;
       if (data.activePyq) lib.activePyq = data.activePyq;
       if (data.activeChat) lib.activeChat = data.activeChat;
+      if (data.activeBaoxi) lib.activeBaoxi = data.activeBaoxi;
       savePromptLibrary();
       renderPromptLib();
       refreshPromptStatus();
@@ -5157,12 +5190,12 @@ function renderPromptLib() {
   var html = '';
   for (var i = 0; i < prompts.length; i++) {
     var p = prompts[i];
-    var typeLabel = p.type === 'koubo' ? '口播' : (p.type === 'pyq' ? '朋友圈' : '对话');
-    var typeCls = p.type === 'koubo' ? 'koubo' : (p.type === 'pyq' ? 'pyq' : 'chat');
+    var typeLabel = p.type === 'koubo' ? '口播' : (p.type === 'pyq' ? '朋友圈' : (p.type === 'chat' ? '对话' : '报喜'));
+    var typeCls = p.type === 'koubo' ? 'koubo' : (p.type === 'pyq' ? 'pyq' : (p.type === 'chat' ? 'chat' : 'baoxi'));
     var starHtml = p.isDefault ? '<span class="star">⭐</span>' : '';
     var defaultCls = p.isDefault ? ' default-card' : '';
     var preview = p.content.replace(/\n/g, ' ').substring(0, 80);
-    var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id) || (p.type === 'chat' && lib.activeChat === p.id);
+    var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id) || (p.type === 'chat' && lib.activeChat === p.id) || (p.type === 'baoxi' && lib.activeBaoxi === p.id);
     html += '<div class="prompt-card' + defaultCls + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
     html += '<span class="type-badge ' + typeCls + '">' + typeLabel + '</span>';
     html += '<div class="info">';
@@ -5188,7 +5221,7 @@ function selectPromptCard(id, type) {
       if (inp) { inp.value = prompt.content; inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 200) + 'px'; }
     }
   }
-  showToast('✅ 已切换' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) + '提示词', 'success');
+  showToast('✅ 已切换' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : (type === 'chat' ? '对话' : '报喜'))) + '提示词', 'success');
 }
 
 function deletePromptConfirm(id) {
@@ -5203,6 +5236,7 @@ function deletePromptConfirm(id) {
     if (lib.activeKoubo === id) lib.activeKoubo = 'p_default_koubo';
     if (lib.activePyq === id) lib.activePyq = 'p_default_pyq';
     if (lib.activeChat === id) lib.activeChat = 'p_default_chat';
+    if (lib.activeBaoxi === id) lib.activeBaoxi = 'p_default_baoxi1';
     lib.prompts.splice(idx, 1);
     savePromptLibrary();
     renderPromptLib();
@@ -5229,7 +5263,7 @@ function openPromptEdit(id) {
     + '<div class="prompt-edit-header"><span class="title">' + title + '</span><button onclick="closePromptEdit()" style="border:none;background:none;cursor:pointer;font-size:16px;">×</button></div>'
     + '<div class="prompt-edit-body">'
     + '<label>名称</label><input id="promptEditName" value="' + escapeHtml(nameVal) + '" placeholder="给提示词起个名">'
-    + '<label>类型</label><select id="promptEditType"><option value="koubo"' + (typeVal === 'koubo' ? ' selected' : '') + '>🟢 口播润色</option><option value="pyq"' + (typeVal === 'pyq' ? ' selected' : '') + '>🟣 朋友圈润色</option><option value="chat"' + (typeVal === 'chat' ? ' selected' : '') + '>💬 AI对话</option></select>'
+    + '<label>类型</label><select id="promptEditType"><option value="koubo"' + (typeVal === 'koubo' ? ' selected' : '') + '>🟢 口播润色</option><option value="pyq"' + (typeVal === 'pyq' ? ' selected' : '') + '>🟣 朋友圈润色</option><option value="chat"' + (typeVal === 'chat' ? ' selected' : '') + '>💬 AI对话</option><option value="baoxi"' + (typeVal === 'baoxi' ? ' selected' : '') + '>📣 报喜模板</option></select>'
     + '<label>提示词内容</label><textarea id="promptEditContent" placeholder="输入 system prompt 内容...">' + escapeHtml(contentVal) + '</textarea>'
     + '<div class="row"><label><input type="checkbox" id="promptEditDefault"' + (defaultChecked ? ' checked' : '') + '> 设为默认提示词</label></div>'
     + '</div>'
@@ -5280,6 +5314,7 @@ function savePromptEdit(id) {
     if (type === 'koubo' && !lib.activeKoubo) lib.activeKoubo = newId;
     if (type === 'pyq' && !lib.activePyq) lib.activePyq = newId;
     if (type === 'chat' && !lib.activeChat) lib.activeChat = newId;
+    if (type === 'baoxi' && !lib.activeBaoxi) lib.activeBaoxi = newId;
   }
   savePromptLibrary();
   closePromptEdit();
@@ -5294,8 +5329,12 @@ function openPromptPicker(type, event) {
   var lib = loadPromptLibrary();
   var prompts = lib.prompts.filter(function(p) { return p.type === type; });
   var drop = document.getElementById('promptPickerDrop');
-  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
-  var html = '<div class="pick-divider">选择' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) + '提示词</div>';
+  var activeId;
+  if (type === 'koubo') activeId = lib.activeKoubo;
+  else if (type === 'pyq') activeId = lib.activePyq;
+  else if (type === 'chat') activeId = lib.activeChat;
+  else activeId = lib.activeBaoxi;
+  var html = '<div class="pick-divider">选择' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : (type === 'chat' ? '对话' : '报喜'))) + '提示词</div>';
   for (var i = 0; i < prompts.length; i++) {
     var p = prompts[i];
     var isActive = p.id === activeId;
@@ -5340,7 +5379,7 @@ function pickPromptOpenLib(type) {
     var chips = document.querySelectorAll('#promptLibFilter .chip');
     for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
     for (var j = 0; j < chips.length; j++) {
-      if (chips[j].textContent.indexOf(type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) >= 0) { chips[j].classList.add('active'); break; }
+      if (chips[j].textContent.indexOf(type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : (type === 'chat' ? '对话' : '报喜'))) >= 0) { chips[j].classList.add('active'); break; }
     }
     renderPromptLib();
   }, 100);
@@ -5777,9 +5816,34 @@ function aiHandleKeydown(e) {
   }, 0);
 }
 
+// AI 快捷操作：报喜
+function aiQuickBaoxi() {
+  // 直接用当前激活的报喜模板
+  var lib = loadPromptLibrary();
+  var baoxiId = lib.activeBaoxi;
+  var template = null;
+  if (baoxiId) template = lib.prompts.find(function(p) { return p.id === baoxiId; });
+  if (!template) {
+    // fallback：取第一条报喜模板
+    template = lib.prompts.find(function(p) { return p.type === 'baoxi'; });
+  }
+  if (!template) {
+    showToast('⚠️ 请先在提示词库中添加报喜模板', 'error');
+    return;
+  }
+  var inp = document.getElementById('aiInput');
+  inp.value = '用【' + template.name + '】模板帮我写今晚的报喜朋友圈，参考以下模板：\n\n---\n' + template.content + '\n---\n\n今天的实际情况是：[在这里填写今天的数据/故事/客户反馈]\n\n直接输出纯文案，不要解释。';
+  inp.style.height = 'auto';
+  inp.style.height = Math.min(inp.scrollHeight, 200) + 'px';
+  if (!aiPanelOpen) toggleAIPanel();
+  inp.focus();
+  // 把光标移到占位文字处
+  var pos = inp.value.indexOf('[在这里填写');
+  if (pos >= 0) { inp.setSelectionRange(pos + 1, pos + 8); }
+}
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.18';
+var APP_VERSION = '2.19';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5917,6 +5981,18 @@ var VERSION_HISTORY = [
       '✍️ 三处朋友圈润色提示词同步为完整点线面体结构描述',
       '🎨 按钮 padding 统一为 5px 12px，更紧凑',
       '🔧 三主题（极简白/商务蓝/科技暗色）按钮样式同步'
+    ]
+  },
+  {
+    version: '2.19',
+    date: '2026-06-15',
+    tag: '📣 报喜模板系统：5种模板直接写入主程序',
+    desc: [
+      '📣 新增「报喜」类型提示词（5条默认模板：战报/原话/故事/复购/里程碑）',
+      '🎯 AI 面板新增「📣 报喜」快捷按钮：一键填充模板+用户数据 → AI 生成',
+      '🏷️ 提示词库新增「📣 报喜」筛选标签 + 编辑类型选项',
+      '🎨 报喜类型卡片橙色标识（type-badge.baoxi）',
+      '💡 使用流程：点「📣 报喜」→ 填实际数据 → 发送 → AI 按模板生成'
     ]
   },
   {
