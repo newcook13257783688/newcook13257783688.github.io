@@ -6023,7 +6023,7 @@ function backupAllToCloud() {
 
     // 依次备份（直接 upsert，不先清空）
     var steps = [
-      { label: '文案数据', table: 'articles', records: articles, conflict: 'id' },
+      { label: '文案数据', table: 'articles', records: articles, clearFilter: '?id=neq.' },
       { label: '内容分类', table: 'app_config', records: [categoriesRecord], conflict: 'key' },
       { label: '提示词', table: 'prompts', records: prompts, clearFilter: '?name=neq.' },
       { label: '钩子金句', table: 'hooks_goldens', records: hooksGoldens, clearFilter: '?id=gt.0' }
@@ -6699,7 +6699,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.51';
+var APP_VERSION = '2.52';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7224,6 +7224,15 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 初始化现在删除所有自定义提示词，仅保留 8 条默认提示词',
       '🔧 active 选项重置到默认值'
+    ]
+  },
+  {
+    version: '2.52',
+    date: '2026-06-16',
+    tag: '🔥 修复文案备份只 upsert 不删除云端旧数据',
+    desc: [
+      '🔧 文案备份改为「清空+INSERT」（之前是 upsert）',
+      '🔧 修复删除本地文案后云端仍保留，恢复后又回来的问题'
     ]
   }
 ];
