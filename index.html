@@ -6241,19 +6241,19 @@ function checkCloudData() {
   if (!cfg) { showToast('⚠️ Supabase 未配置', 'error'); return; }
   showToast('📊 正在查询云端数据...', 'info');
   
+  // 直接查各表记录数（select=id 比 select=* 轻量）
   var tables = ['articles', 'app_config', 'prompts', 'hooks_goldens'];
   var promises = tables.map(function(table) {
-    return fetch(cfg.url + '/rest/v1/' + table + '?select=count', {
+    var idCol = table === 'app_config' ? 'key' : (table === 'hooks_goldens' ? 'id' : 'id');
+    return fetch(cfg.url + '/rest/v1/' + table + '?select=' + idCol, {
       headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
     }).then(function(r) {
-      if (!r.ok) throw new Error(table + ': HTTP ' + r.status);
-      return r.headers.get('content-range') || '?';
-    }).catch(function(err) {
-      return table + ': ' + err.message;
-    });
+      if (!r.ok) return '查不到';
+      return r.json().then(function(data) { return Array.isArray(data) ? data.length : '?'; });
+    }).catch(function() { return '查不到'; });
   });
   
-  // 也查一下 app_config 的具体 key
+  // 查 app_config 的具体值
   var catPromise = fetch(cfg.url + '/rest/v1/app_config?select=key,value&key=eq.categories', {
     headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
   }).then(function(r) { return r.ok ? r.json() : null; });
@@ -6263,13 +6263,13 @@ function checkCloudData() {
   
   Promise.all(promises.concat([catPromise, promptPromise])).then(function(results) {
     var msg = '📊 云端数据：\n';
-    msg += '• 文案：' + results[0] + '\n';
-    msg += '• 配置：' + results[1] + '\n';
-    msg += '• 提示词：' + results[2] + '\n';
-    msg += '• 钩子金句：' + results[3] + '\n';
+    msg += '• 文案：' + results[0] + ' 条\n';
+    msg += '• 配置：' + results[1] + ' 条\n';
+    msg += '• 提示词：' + results[2] + ' 条\n';
+    msg += '• 钩子金句：' + results[3] + ' 条\n';
     
     var cats = results[4];
-    msg += '\n📂 内容分类：' + (cats && cats.length > 0 ? (cats[0].value ? '有数据' : '值为空') : '无记录');
+    msg += '\n📂 内容分类：' + (cats && cats.length > 0 ? '有数据' : '无记录');
     if (cats && cats.length > 0 && cats[0].value) {
       try {
         var parsed = JSON.parse(cats[0].value);
@@ -6283,7 +6283,7 @@ function checkCloudData() {
       msg += ' 前3条：' + prompts.slice(0, 3).map(function(p) { return p.name; }).join('、');
     }
     
-    showToast(msg, 'info', 8000);
+    showToast(msg, 'info', 12000);
     console.log('[cloud-diagnostic]', msg);
     var statusEl = document.getElementById('cloudSyncStatus');
     if (statusEl) statusEl.textContent = '诊断完成 · 见 Toast 消息';
@@ -6301,7 +6301,13 @@ function clearCloudAndReUpload() {
     var statusEl = document.getElementById('cloudSyncStatus');
     if (statusEl) statusEl.textContent = '清空中...';
     
-    var tables = ['hooks_goldens', 'prompts', 'app_config', 'articles'];
+    // 每张表的 DELETE filter（Supabase 需要 filter 才能 DELETE）
+    var tables = [
+      { name: 'articles', filter: '?id=neq.' },
+      { name: 'app_config', filter: '?key=neq.' },
+      { name: 'prompts', filter: '?name=neq.' },
+      { name: 'hooks_goldens', filter: '?id=gt.0' }
+    ];
     function clearNext(idx) {
       if (idx >= tables.length) {
         showToast('✅ 已清空云端，正在重新上传...', 'info');
@@ -6309,14 +6315,18 @@ function clearCloudAndReUpload() {
         backupAllToCloud();
         return;
       }
-      var table = tables[idx];
-      fetch(cfg.url + '/rest/v1/' + table + '?select=count', {
-        headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
-      }).then(function(r) {
-        if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
-        return r.headers.get('content-range') || '0';
-      }).then(function(range) {
-        // 获取 max 值（最后一个表示总行数）
+      var t = tables[idx];
+      if (statusEl) statusEl.textContent = '清空中：' + t.name;
+      supabaseRequest('DELETE', t.name + t.filter)
+        .then(function() { clearNext(idx + 1); })
+        .catch(function(err) {
+          console.error('[clear-table-failed]', t.name, err);
+          clearNext(idx + 1); // 跳过失败的表继续
+        });
+    }
+    clearNext(0);
+  });
+}
         var parts = range.split('/');
         var count = parseInt(parts[1] || parts[0] || '0', 10);
         if (count === 0) { clearNext(idx + 1); return; }
@@ -6675,7 +6685,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.32';
+var APP_VERSION = '2.33';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7023,6 +7033,16 @@ var VERSION_HISTORY = [
       '🔧 备份结果显示「部分完成」vs「全部完成」',
       '📊 新增「查看云端数据」显示各表记录数',
       '🔄 新增「清空后重传」按钮'
+    ]
+  },
+  {
+    version: '2.33',
+    date: '2026-06-16',
+    tag: '☁️ 修复清空函数 400 + 诊断计数',
+    desc: [
+      '🔧 清空云端改用正确 Supabase DELETE 语法（?id=neq. / ?id=gt.0）',
+      '🔧 查看云端数据改用 JS 数组计数，修复 content-range 解析问题',
+      '🔧 清空链条也支持单步失败不中断'
     ]
   }
 ];
