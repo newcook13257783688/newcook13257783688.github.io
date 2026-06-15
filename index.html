@@ -5911,40 +5911,20 @@ function downloadPromptLibFromCloud() {
       return;
     }
     var lib = loadPromptLibrary();
-    var existingIds = {};
-    for (var i = 0; i < lib.prompts.length; i++) {
-      existingIds[lib.prompts[i].id] = true;
-    }
-    var added = 0;
-    var skipped = 0;
-    for (var j = 0; j < records.length; j++) {
-      var r = records[j];
-      var newId = 'cloud_' + Math.random().toString(36).substr(2, 8);
-      // 简单地按名称去重
-      var dup = false;
-      for (var k = 0; k < lib.prompts.length; k++) {
-        if (lib.prompts[k].name === r.name && lib.prompts[k].type === r.type) {
-          dup = true;
-          skipped++;
-          break;
-        }
-      }
-      if (!dup) {
-        lib.prompts.push({
-          id: newId,
-          name: r.name,
-          type: r.type || 'chat',
-          content: r.content
-        });
-        added++;
-      }
-    }
-    if (added > 0) {
-      savePromptLibrary(lib);
-      renderPromptLib();
-      refreshPromptStatus();
-    }
-    showToast('✅ 从云端下载完成：新增 ' + added + ' 条，跳过 ' + skipped + ' 条重复', 'success');
+    var added = records.length;
+    lib.prompts = [];
+    records.forEach(function(r, idx) {
+      lib.prompts.push({
+        id: 'cloud_' + Date.now() + '_' + idx,
+        name: r.name || '',
+        type: r.type || 'chat',
+        content: r.content || ''
+      });
+    });
+    savePromptLibrary();
+    renderPromptLib();
+    refreshPromptStatus();
+    showToast('✅ 从云端下载完成：已覆盖本地 ' + added + ' 条提示词', 'success');
   })
   .catch(function(err) {
     showToast('❌ 下载失败：' + err.message, 'error');
@@ -6678,7 +6658,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.39';
+var APP_VERSION = '2.40';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7090,6 +7070,15 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 saveCategories() 现在自动刷新分类筛选按钮和标签选择按钮',
       '🔧 避免恢复后分类数据已保存但 UI 不更新的问题'
+    ]
+  },
+  {
+    version: '2.40',
+    date: '2026-06-16',
+    tag: '🔥 旧版提示词下载也改为覆盖模式',
+    desc: [
+      '🔧 downloadPromptLibFromCloud() 去掉按名称去重逻辑',
+      '🔧 改为直接覆盖本地提示词库（与一键恢复一致）'
     ]
   }
 ];
