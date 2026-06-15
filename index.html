@@ -6009,7 +6009,8 @@ function backupAllToCloud() {
     // 3. 提示词 → prompts 表（从 IndexedDB 读取）
     var promptLib = loadPromptLibrary();
     var prompts = (promptLib.prompts || []).map(function(p) {
-      return { id: p.id, name: p.name, type: p.type || 'chat', content: p.content };
+      var rec = { name: p.name, type: p.type || 'chat', content: p.content };
+      return rec;
     });
 
     // 4. 钩子金句 → hooks_goldens 表
@@ -6196,7 +6197,7 @@ function restoreAllFromCloud() {
 
     // 3. 恢复提示词（覆盖模式：直接用云端数据替换本地）
     console.log('[restore-prompts] 开始恢复提示词');
-    fetch(cfg.url + '/rest/v1/prompts?select=id,name,type,content', {
+    fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
       headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
     }).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -6211,13 +6212,17 @@ function restoreAllFromCloud() {
       var lib = loadPromptLibrary();
       console.log('[restore-prompts] 本地库原有 ' + lib.prompts.length + ' 条');
       lib.prompts = [];
+      // 默认提示词 ID 列表
+      var defaultIds = ['p_default_koubo','p_default_pyq','p_default_chat','p_default_baoxi1','p_default_baoxi2','p_default_baoxi3','p_default_baoxi4','p_default_baoxi5'];
+      var defaultNameMap = { '口播轻量化润色（默认）': true, '朋友圈点线面体润色（默认）': true, 'AI对话（默认）': true, '今日战报（报喜模板）': true, '客户原话（报喜模板）': true, '意外之喜（报喜模板）': true, '复购感动（报喜模板）': true, '里程碑（报喜模板）': true };
       records.forEach(function(rec, idx) {
+        var isDef = defaultNameMap[rec.name] ? true : false;
         lib.prompts.push({
-          id: rec.id || ('cloud_' + Date.now() + '_' + idx),
+          id: isDef ? defaultIds[idx] : ('prompt_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).substr(2, 4)),
           name: rec.name || '',
           type: rec.type || 'chat',
           content: rec.content || '',
-          isDefault: rec.id && rec.id.indexOf('p_default_') === 0 ? true : false,
+          isDefault: isDef,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
@@ -6702,7 +6707,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.54';
+var APP_VERSION = '2.55';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7255,6 +7260,15 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 备份不再上传 isDefault（Supabase prompts 表无此列）',
       '🔧 恢复时根据 id 前缀 p_default_ 自动判断是否为默认提示词'
+    ]
+  },
+  {
+    version: '2.55',
+    date: '2026-06-16',
+    tag: '🔥 修复 prompts 表 id 列为自增，不能指定值',
+    desc: [
+      '🔧 备份不上传 id（Supabase prompts 表 id 为 GENERATED ALWAYS）',
+      '🔧 恢复时根据名称匹配默认提示词，恢复 isDefault 标记和正确 ID'
     ]
   }
 ];
