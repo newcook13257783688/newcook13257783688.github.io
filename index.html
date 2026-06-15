@@ -3400,8 +3400,12 @@ body.theme-dark .tag-clear-btn:hover {
     position: fixed;
     bottom: 155px;
     right: 24px;
-    width: 380px;
-    height: 520px;
+    width: 570px;
+    height: 780px;
+    min-width: 300px;
+    min-height: 350px;
+    max-width: 90vw;
+    max-height: 85vh;
     background: var(--bg-card);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-xl);
@@ -3412,6 +3416,28 @@ body.theme-dark .tag-clear-btn:hover {
     animation: aiSlideIn 0.3s var(--ease-bounce) forwards;
     border: 1px solid var(--border-light);
   }
+  .ai-panel-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    z-index: 10;
+  }
+  .ai-panel-resize-handle::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    opacity: 0.4;
+    transition: opacity 0.15s;
+  }
+  .ai-panel-resize-handle:hover::after { opacity: 0.8; }
   .ai-panel.show { display: flex; }
   @keyframes aiSlideIn {
     from { opacity: 0; transform: translateY(20px) scale(0.95); }
@@ -4076,6 +4102,7 @@ body.theme-dark .tag-clear-btn:hover {
       <button class="ai-send-btn" id="aiSendBtn" onclick="aiSendMessage()">➤</button>
     </div>
   </div>
+  <div class="ai-panel-resize-handle" id="aiPanelResize"></div>
 </div>
 
 <!-- 🤖 AI 浮动按钮 -->
@@ -5614,6 +5641,7 @@ function toggleAIPanel() {
     panel.classList.add('show');
     fab.classList.add('active');
     fab.textContent = '✕';
+    applyAIPanelSize();
     renderAIChat();
     // 聚焦输入框
     setTimeout(function() {
@@ -5625,6 +5653,76 @@ function toggleAIPanel() {
     fab.classList.remove('active');
     fab.textContent = '🤖';
   }
+}
+
+// ===== AI 面板尺寸拖拽 =====
+function initAIPanelResize() {
+  var handle = document.getElementById('aiPanelResize');
+  var panel = document.getElementById('aiPanel');
+  if (!handle || !panel) return;
+
+  var isResizing = false;
+  var startX, startY, startW, startH;
+
+  handle.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = parseInt(window.getComputedStyle(panel).width, 10);
+    startH = parseInt(window.getComputedStyle(panel).height, 10);
+    panel.style.userSelect = 'none';
+    document.body.style.cursor = 'nwse-resize';
+
+    function onMouseMove(ev) {
+      if (!isResizing) return;
+      var newW = startW + (ev.clientX - startX);
+      var newH = startH + (ev.clientY - startY);
+      var minW = 300, maxW = Math.round(window.innerWidth * 0.9);
+      var minH = 350, maxH = Math.round(window.innerHeight * 0.85);
+      newW = Math.max(minW, Math.min(maxW, newW));
+      newH = Math.max(minH, Math.min(maxH, newH));
+      panel.style.width = newW + 'px';
+      panel.style.height = newH + 'px';
+    }
+
+    function onMouseUp() {
+      if (!isResizing) return;
+      isResizing = false;
+      panel.style.userSelect = '';
+      document.body.style.cursor = '';
+      // 持久化存储
+      try {
+        var w = parseInt(panel.style.width, 10);
+        var h = parseInt(panel.style.height, 10);
+        if (w && h) localStorage.setItem('aiPanelSize', JSON.stringify({w: w, h: h}));
+      } catch(e) {}
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    }
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+}
+
+function applyAIPanelSize() {
+  var panel = document.getElementById('aiPanel');
+  if (!panel) return;
+  try {
+    var saved = localStorage.getItem('aiPanelSize');
+    if (saved) {
+      var size = JSON.parse(saved);
+      if (size.w && size.h) {
+        panel.style.width = size.w + 'px';
+        panel.style.height = size.h + 'px';
+        return;
+      }
+    }
+  } catch(e) {}
+  // 默认 570×780（相比旧版 380×520 放大 50%）
+  panel.style.width = '';
+  panel.style.height = '';
 }
 
 function renderAIChat() {
@@ -5874,7 +5972,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.22';
+var APP_VERSION = '2.23';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6113,6 +6211,17 @@ var VERSION_HISTORY = [
       '🔍 提示词库管理弹窗新增搜索输入框，支持模糊匹配名称和内容',
       '📊 实时显示匹配条数，输入即搜，结合分类标签联合筛选',
       '🎨 自带搜索图标 + 焦点高亮，三主题（极简白/商务蓝/科技暗色）适配'
+    ]
+  },
+  {
+    version: '2.23',
+    date: '2026-06-15',
+    tag: '↔️ AI 面板可拖拽调整尺寸 + 初始放大50%',
+    desc: [
+      '↔️ AI 面板右下角新增拖拽把手，支持任意调整宽高',
+      '📏 初始尺寸 570×780（相比旧版 380×520 放大50%）',
+      '💾 拖拽后的尺寸自动保存到 localStorage，下次打开恢复',
+      '🛡️ 限制范围：最小300×350，最大90vw×85vh，避免拖过头'
     ]
   }
 ];
@@ -9873,6 +9982,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   // 初始化提示词状态栏
   if (typeof refreshPromptStatus === 'function') refreshPromptStatus();
+  // 初始化 AI 面板尺寸拖拽
+  if (typeof initAIPanelResize === 'function') initAIPanelResize();
   // URL 参数自动注入：?inject=golden
   var urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('inject') === 'golden') {
