@@ -6144,48 +6144,51 @@ function restoreAllFromCloud() {
       if (records && records.length > 0) {
         try {
           var cats = JSON.parse(records[0].value);
-          if (Array.isArray(cats)) {
+          if (Array.isArray(cats) && cats.length > 0) {
             categories = cats;
             saveCategories(cats);
+            showToast('✅ 内容分类已恢复（' + cats.length + ' 个）', 'success');
+          } else {
+            showToast('⚠️ 云端内容分类数据为空', 'info');
           }
-        } catch(e) {}
+        } catch(e) { showToast('⚠️ 内容分类数据解析失败', 'error'); }
+      } else {
+        showToast('⚠️ 云端无内容分类数据', 'info');
       }
       checkDone();
     }).catch(function(err) {
-      showToast('⚠️ 内容分类恢复失败（可能云端无数据）', 'error');
+      showToast('❌ 内容分类恢复失败：' + err.message, 'error');
       checkDone();
     });
 
-    // 3. 恢复提示词
+    // 3. 恢复提示词（覆盖模式：直接用云端数据替换本地）
     fetch(cfg.url + '/rest/v1/prompts?select=name,type,content', {
       headers: { 'apikey': cfg.key, 'Authorization': 'Bearer ' + cfg.key }
     }).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function(records) {
+      if (!records || records.length === 0) {
+        showToast('⚠️ 云端无提示词数据', 'info');
+        checkDone();
+        return;
+      }
       var lib = { prompts: [] };
-      try {
-        var saved = localStorage.getItem('wzjPromptLib');
-        if (saved) lib = JSON.parse(saved);
-      } catch(e) {}
-      // 去重：按名称+类型
-      var existKeys = {};
-      (lib.prompts || []).forEach(function(p) { existKeys[p.name + '|' + (p.type || 'chat')] = true; });
-      var added = 0;
-      records.forEach(function(rec) {
-        var key = (rec.name || '') + '|' + (rec.type || 'chat');
-        if (!existKeys[key]) {
-          lib.prompts.push({ id: 'cloud_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6), name: rec.name, type: rec.type || 'chat', content: rec.content });
-          existKeys[key] = true;
-          added++;
-        }
+      records.forEach(function(rec, idx) {
+        lib.prompts.push({
+          id: 'cloud_' + Date.now() + '_' + idx,
+          name: rec.name || '',
+          type: rec.type || 'chat',
+          content: rec.content || ''
+        });
       });
       localStorage.setItem('wzjPromptLib', JSON.stringify(lib));
       renderPromptLib();
       refreshPromptStatus();
+      showToast('✅ 提示词已恢复（' + lib.prompts.length + ' 条，已覆盖本地）', 'success');
       checkDone();
     }).catch(function(err) {
-      showToast('⚠️ 提示词恢复失败（可能云端无数据）', 'error');
+      showToast('❌ 提示词恢复失败：' + err.message, 'error');
       checkDone();
     });
 
@@ -6563,7 +6566,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.29';
+var APP_VERSION = '2.30';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6879,6 +6882,17 @@ var VERSION_HISTORY = [
       '🔧 backupAllToCloud: charCount/timeEstimate 上传前转整数',
       '🔧 去除字符串中的非数字字符（如"34秒"→34）',
       '🔧 修复 Supabase 400：invalid input syntax for type integer'
+    ]
+  },
+  {
+    version: '2.30',
+    date: '2026-06-16',
+    tag: '☁️ 修复云端恢复：提示词覆盖+内容分类提示',
+    desc: [
+      '🔧 提示词恢复改为覆盖模式（原合并模式保留本地脏数据）',
+      '🔧 内容分类恢复加成功/失败/空数据分级提示',
+      '🔧 提示词恢复空数据也提示，不再静默跳过',
+      '🔧 两处恢复都显示恢复条数'
     ]
   }
 ];
