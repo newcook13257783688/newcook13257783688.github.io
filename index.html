@@ -6707,7 +6707,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.55';
+var APP_VERSION = '3.0';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7269,6 +7269,18 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 备份不上传 id（Supabase prompts 表 id 为 GENERATED ALWAYS）',
       '🔧 恢复时根据名称匹配默认提示词，恢复 isDefault 标记和正确 ID'
+    ]
+  },
+  {
+    version: '3.0',
+    date: '2026-06-16',
+    tag: '🎉 里程碑版本：云同步全功能稳定',
+    desc: [
+      '🎉 一键备份/恢复 4 类数据（文案/分类/提示词/钩子金句）全部稳定',
+      '🎉 默认提示词保护：恢复后仍保持不可删不可选',
+      '🎉 跨浏览器数据同步：删除/修改在另一台机器上完全一致',
+      '🎉 提示词批量删除 / 全选 / 初始化',
+      '🎉 IndexedDB + localStorage 双保险存储'
     ]
   }
 ];
