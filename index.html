@@ -3766,6 +3766,8 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-card.default-card { border-color:var(--color-primary-light); background:#f8f9fa; }
   /* 批量删除 */
   .prompt-batch-bar { display:flex; align-items:center; gap:8px; padding:0 20px 10px; }
+  .prompt-batch-bar label { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text-secondary); cursor:pointer; }
+  .prompt-batch-bar input[type=checkbox] { width:14px; height:14px; cursor:pointer; }
   /* 编辑弹窗 */
   .prompt-edit-box { background:#fff; border-radius:12px; width:580px; max-width:95vw; max-height:85vh; display:flex; flex-direction:column; box-shadow:var(--shadow-lg); overflow:hidden; animation: promptLibIn 0.25s ease; }
   .prompt-edit-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-color); background:#f8f9fa; }
@@ -4413,6 +4415,7 @@ body.theme-dark .tag-clear-btn:hover {
       <span class="result-count" id="promptLibResultCount"></span>
     </div>
     <div class="prompt-batch-bar" id="promptBatchBar" style="display:none;">
+      <label><input type="checkbox" id="promptSelectAll" onchange="togglePromptSelectAll(this.checked)"> 全选</label>
       <span id="promptSelectedCount" style="font-size:12px;color:var(--text-secondary);"></span>
       <button onclick="batchDeletePrompts()" style="padding:4px 12px;border:1px solid #fecaca;border-radius:6px;background:#fff;color:#dc2626;font-size:12px;cursor:pointer;">🗑️ 批量删除</button>
     </div>
@@ -5384,6 +5387,20 @@ function togglePromptSelect(id, checked) {
   renderPromptLib();
 }
 
+function togglePromptSelectAll(checked) {
+  var lib = loadPromptLibrary();
+  promptSelected = {};
+  if (checked) {
+    lib.prompts.forEach(function(p) {
+      if (!p.isDefault) promptSelected[p.id] = true;
+    });
+  }
+  updatePromptBatchBar();
+  renderPromptLib();
+  var cb = document.getElementById('promptSelectAll');
+  if (cb) cb.checked = checked;
+}
+
 function updatePromptBatchBar() {
   var keys = Object.keys(promptSelected);
   var bar = document.getElementById('promptBatchBar');
@@ -5451,7 +5468,7 @@ function renderPromptLib() {
     var preview = p.content.replace(/\n/g, ' ').substring(0, 80);
     var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id) || (p.type === 'chat' && lib.activeChat === p.id) || (p.type === 'baoxi' && lib.activeBaoxi === p.id);
     html += '<div class="prompt-card' + defaultCls + (promptSelected[p.id] ? ' selected' : '') + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
-    html += '<label class="cb-wrap" onclick="event.stopPropagation()"><input type="checkbox" ' + (promptSelected[p.id] ? 'checked' : '') + ' onchange="togglePromptSelect(\'' + p.id + '\',this.checked)"></label>';
+    html += '<label class="cb-wrap" onclick="event.stopPropagation()">' + (p.isDefault ? '' : '<input type="checkbox" ' + (promptSelected[p.id] ? 'checked' : '') + ' onchange="togglePromptSelect(\'' + p.id + '\',this.checked)">') + '</label>';
     html += '<span class="type-badge ' + typeCls + '">' + typeLabel + '</span>';
     html += '<div class="info">';
     html += '<div class="name">' + p.name + ' ' + starHtml + (isActive ? '<span style="font-size:10px;color:var(--color-primary);">✓ 使用中</span>' : '') + '</div>';
@@ -6653,7 +6670,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.44';
+var APP_VERSION = '2.45';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7114,6 +7131,16 @@ var VERSION_HISTORY = [
       '🔧 备份提示词和钩子金句前先 DELETE 清空云端表',
       '🔧 有主键的表（文案/分类）继续用 upsert',
       '🔧 无主键的表（提示词/钩子金句）用 清空+INSERT'
+    ]
+  },
+  {
+    version: '2.45',
+    date: '2026-06-16',
+    tag: '📋 提示词批量删除添加全选 + 默认提示词不可选',
+    desc: [
+      '📋 批量栏添加「全选」复选框，一键选中全部非默认提示词',
+      '🔧 默认提示词（⭐）隐藏复选框，不可选中不可删除',
+      '🔧 全选逻辑自动跳过默认提示词'
     ]
   }
 ];
