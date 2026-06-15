@@ -3964,7 +3964,7 @@ body.theme-dark .tag-clear-btn:hover {
     <button class="btn-topbar btn-topbar-hookgolden" onclick="toggleHookGoldenOverlay()">🎣 钩子金句库</button>
     <button class="btn-topbar btn-topbar-settings" onclick="openSettings(event)">⚙️ 系统设置</button>
     <a class="btn-topbar btn-topbar-version" onclick="openVersionModal()" title="版本技术说明">
-      <span class="version-badge">AI</span> v<span id="versionNum">2.13</span>
+      <span class="version-badge">AI</span> v<span id="versionNum">2.19</span>
     </a>
     <span class="storage-status" id="storageStatus" title="点击查看存储详情">
       <span class="dot"></span>
@@ -5773,7 +5773,8 @@ function aiSendMessage() {
   inp.style.height = 'auto';
   // 检查是否已配置 API Key
   var config = loadAIConfig();
-  if (!config.apiKey) {
+  var apiKey = (config.apiKeys && config.apiKeys[config.provider]) || '';
+  if (!apiKey) {
     aiAddChatMessage('assistant', '⚠️ 请先配置 AI API Key：\n\n点击顶部「⚙️ 系统设置」→ AI 助手配置 → 输入 API Key → 保存');
     return;
   }
@@ -5843,7 +5844,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.19';
+var APP_VERSION = '2.20';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5984,18 +5985,6 @@ var VERSION_HISTORY = [
     ]
   },
   {
-    version: '2.19',
-    date: '2026-06-15',
-    tag: '📣 报喜模板系统：5种模板直接写入主程序',
-    desc: [
-      '📣 新增「报喜」类型提示词（5条默认模板：战报/原话/故事/复购/里程碑）',
-      '🎯 AI 面板新增「📣 报喜」快捷按钮：一键填充模板+用户数据 → AI 生成',
-      '🏷️ 提示词库新增「📣 报喜」筛选标签 + 编辑类型选项',
-      '🎨 报喜类型卡片橙色标识（type-badge.baoxi）',
-      '💡 使用流程：点「📣 报喜」→ 填实际数据 → 发送 → AI 按模板生成'
-    ]
-  },
-  {
     version: '2.18',
     date: '2026-06-15',
     tag: '🚀 DeepSeek V4 上线：V4 Flash / V4 Pro',
@@ -6053,6 +6042,28 @@ var VERSION_HISTORY = [
       '🔧 重构润色架构：6 个润色函数统一为 polishKoubo() / polishPyq() 两个入口',
       '⚙️ 新增管理弹窗：新建/编辑/删除提示词，支持设为默认',
       '🎨 预设 2 条默认提示词，零学习成本，行为与旧版完全一致'
+    ]
+  },
+  {
+    version: '2.19',
+    date: '2026-06-15',
+    tag: '📣 报喜模板系统：5种模板直接写入主程序',
+    desc: [
+      '📣 新增「报喜」类型提示词（5条默认模板：战报/原话/故事/复购/里程碑）',
+      '🎯 AI 面板新增「📣 报喜」快捷按钮：一键填充模板+用户数据 → AI 生成',
+      '🏷️ 提示词库新增「📣 报喜」筛选标签 + 编辑类型选项',
+      '🎨 报喜类型卡片橙色标识（type-badge.baoxi）',
+      '💡 使用流程：点「📣 报喜」→ 填实际数据 → 发送 → AI 按模板生成'
+    ]
+  },
+  {
+    version: '2.20',
+    date: '2026-06-15',
+    tag: '🔧 修复：版本号显示 + AI对话API Key检测',
+    desc: [
+      '🔧 修复版本号硬编码问题：topbar 版本号改为从 APP_VERSION 动态读取',
+      '🔧 修复 VERSION_HISTORY 顺序：v2.19 移正到数组末尾，「当前」标记正确',
+      '🔧 修复 AI 对话框误报「未绑定 API」：chat 入口改用多供应商 Key 检测'
     ]
   }
 ];
@@ -9787,6 +9798,9 @@ function showTipOverlay(text, duration) {
 
 // 返回顶部按钮 + 兜底初始化渲染
 document.addEventListener('DOMContentLoaded', function() {
+  // 动态设置版本号
+  var vn = document.getElementById('versionNum');
+  if (vn) vn.textContent = APP_VERSION;
   // 返回顶部按钮
   var btn = document.getElementById('backToTop');
   if (btn) {
