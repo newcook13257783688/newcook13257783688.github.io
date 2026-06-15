@@ -5789,28 +5789,35 @@ function getSupabaseConfig() {
 function testSupabaseConnection() {
   var cfg = getSupabaseConfig();
   if (!cfg || !cfg.url || !cfg.key) {
-    showToast('⚠️ 请先保存 Supabase 配置', 'error');
+    showToast('⚠️ Supabase 配置未找到', 'error');
     return;
   }
   showToast('🔄 正在测试 Supabase 连接...', 'info');
-  fetch(cfg.url + '/rest/v1/', {
-    headers: { 'apikey': cfg.key }
+  // 用 ?limit=0 测试连接（不取数据，只测连通性）
+  fetch(cfg.url + '/rest/v1/articles?limit=0', {
+    headers: {
+      'apikey': cfg.key,
+      'Authorization': 'Bearer ' + cfg.key
+    }
   })
   .then(function(r) {
-    if (r.ok || r.status === 401) {
-      // 如果返回401但提示"Secret API key required"，说明连接通了但需要secret key
+    if (r.ok || r.status === 406) {
+      // 406 = Not Acceptable，说明 key 有效（只是没传 Accept header）
+      showToast('✅ Supabase 连接成功！', 'success');
+    } else if (r.status === 401) {
+      showToast('❌ anon key 无效或已过期', 'error');
+    } else if (r.status === 404) {
+      showToast('❌ articles 表不存在，请先创建表', 'error');
+    } else {
       return r.json().then(function(d) {
-        if (d.message && d.message.indexOf('Secret') !== -1) {
-          showToast('✅ Supabase 连接成功！(anon key 正常)', 'success');
-        } else {
-          showToast('✅ Supabase 连接成功！', 'success');
-        }
+        showToast('❌ 连接失败：' + (d.message || 'HTTP ' + r.status), 'error');
+      }).catch(function() {
+        showToast('❌ 连接失败：HTTP ' + r.status, 'error');
       });
     }
-    throw new Error('HTTP ' + r.status);
   })
   .catch(function(err) {
-    showToast('❌ 连接失败：' + (err.message || '未知错误'), 'error');
+    showToast('❌ 连接失败：' + (err.message || '网络错误'), 'error');
   });
 }
 
@@ -5831,7 +5838,17 @@ function supabaseRequest(method, table, data, prefer) {
     opts.body = JSON.stringify(data);
   }
   return fetch(url, opts).then(function(r) {
-    if (!r.ok) return r.json().then(function(e) { throw new Error(e.message || 'HTTP ' + r.status); });
+    if (!r.ok) {
+      // 先 clone，再分别尝试读 JSON / 文本
+      var cloned = r.clone();
+      return cloned.json().then(function(e) {
+        throw new Error(e.message || e.error || JSON.stringify(e) || 'HTTP ' + r.status);
+      }).catch(function() {
+        return r.text().then(function(t) {
+          throw new Error(t || 'HTTP ' + r.status);
+        });
+      });
+    }
     return r;
   });
 }
@@ -5985,7 +6002,7 @@ function backupAllToCloud() {
       hooksGoldens.push({ type: 'golden', content: item.content || '', category: item.category || '', scenario: item.scenario || '', tags: JSON.stringify(item.tags || []) });
     });
 
-    // 依次备份（articles → categories → prompts → hooks_goldens）
+    // 依次备份（直接 upsert，不先清空）
     var steps = [
       { label: '文案数据', table: 'articles', records: articles },
       { label: '内容分类', table: 'app_config', records: [categoriesRecord] },
@@ -6003,10 +6020,7 @@ function backupAllToCloud() {
       if (!step.records.length) { doStep(i + 1); return; }
       if (statusEl) statusEl.textContent = '正在备份：' + step.label + '（' + step.records.length + ' 条）';
 
-      // 先清空云端该表数据，再上传（避免重复）
-      clearCloudTable(step.table).then(function() {
-        return supabaseBatchUpload(step.table, step.records);
-      }).then(function() {
+      supabaseBatchUpload(step.table, step.records).then(function() {
         doStep(i + 1);
       }).catch(function(err) {
         showToast('❌ 备份失败（' + step.label + '）：' + err.message, 'error');
@@ -6535,7 +6549,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.26';
+var APP_VERSION = '2.27';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6818,6 +6832,17 @@ var VERSION_HISTORY = [
       '☁️ 系统设置隐藏输入框，显示「已内置」提示',
       '🔧 getSupabaseConfig() 直接返回内置配置',
       '🔧 save/clear/toggleSupabaseKey() 改为提示函数'
+    ]
+  },
+  {
+    version: '2.27',
+    date: '2026-06-16',
+    tag: '☁️ 修复云端备份 401/400 错误',
+    desc: [
+      '🔧 testSupabaseConnection 改测 articles 表（?limit=0），不再 401',
+      '🔧 supabaseRequest 错误解析增强：先读 JSON，失败再读文本',
+      '🔧 backupAllToCloud 去掉 clearCloudTable，改用 upsert 直写',
+      '🔧 去除多余的 clearCloudTable / supabaseBatchUpload 重复定义'
     ]
   }
 ];
