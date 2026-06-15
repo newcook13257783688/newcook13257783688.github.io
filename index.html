@@ -4070,6 +4070,7 @@ body.theme-dark .tag-clear-btn:hover {
       </div>
       <div style="display:flex;gap:8px;margin-bottom:10px;">
         <button onclick="checkCloudData()" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#555;transition:all 0.2s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='#fff'">📊 查看云端数据</button>
+        <button onclick="testPromptTable()" style="flex:1;padding:8px;border:1px solid #fef3c7;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#d97706;transition:all 0.2s;" onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='#fff'">🔍 诊断提示词表</button>
         <button onclick="clearCloudAndReUpload()" style="flex:1;padding:8px;border:1px solid #fecaca;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#dc2626;transition:all 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='#fff'">🔄 清空后重传</button>
       </div>
       <div class="cloud-sync-hint">
@@ -5993,13 +5994,9 @@ function backupAllToCloud() {
     // 2. 内容分类 → app_config 表
     var categoriesRecord = { key: 'categories', value: JSON.stringify(categories) };
 
-    // 3. 提示词 → prompts 表
-    var lib = { prompts: [] };
-    try {
-      var saved = localStorage.getItem('wzjPromptLib');
-      if (saved) lib = JSON.parse(saved);
-    } catch(e) {}
-    var prompts = (lib.prompts || []).map(function(p) {
+    // 3. 提示词 → prompts 表（从 IndexedDB 读取）
+    var promptLib = loadPromptLibrary();
+    var prompts = (promptLib.prompts || []).map(function(p) {
       return { name: p.name, type: p.type || 'chat', content: p.content };
     });
 
@@ -6042,8 +6039,11 @@ function backupAllToCloud() {
       ).then(function() {
         doStep(i + 1, hasError);
       }).catch(function(err) {
-        showToast('❌ 备份失败（' + step.label + '）：' + err.message, 'error');
+        var fullErr = err.message || JSON.stringify(err);
+        showToast('❌ 备份失败（' + step.label + '）：' + fullErr, 'error');
         console.error('[backup-step-failed]', step.table, err);
+        // 把详细错误写到状态区
+        if (statusEl) statusEl.innerHTML = '❌ ' + step.label + ' 失败：<code style="font-size:10px;word-break:break-all;">' + fullErr + '</code>';
         // 继续下一步（不中断链）
         doStep(i + 1, true);
       });
@@ -6185,7 +6185,8 @@ function restoreAllFromCloud() {
         checkDone();
         return;
       }
-      var lib = { prompts: [] };
+      var lib = loadPromptLibrary();
+      lib.prompts = [];
       records.forEach(function(rec, idx) {
         lib.prompts.push({
           id: 'cloud_' + Date.now() + '_' + idx,
@@ -6194,7 +6195,7 @@ function restoreAllFromCloud() {
           content: rec.content || ''
         });
       });
-      localStorage.setItem('wzjPromptLib', JSON.stringify(lib));
+      savePromptLibrary();
       renderPromptLib();
       refreshPromptStatus();
       showToast('✅ 提示词已恢复（' + lib.prompts.length + ' 条，已覆盖本地）', 'success');
@@ -6672,7 +6673,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.37';
+var APP_VERSION = '2.38';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7065,6 +7066,16 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 无 on_conflict 的表不再发送 resolution=merge-duplicates（避免 400）',
       '🔧 改用 return=minimal 做纯 INSERT'
+    ]
+  },
+  {
+    version: '2.38',
+    date: '2026-06-16',
+    tag: '🔥 修复备份读错存储（IndexedDB vs localStorage）',
+    desc: [
+      '🔧 backupAllToCloud: 改用 loadPromptLibrary() 从 IndexedDB 读取提示词',
+      '🔧 restoreAllFromCloud: 改用 loadPromptLibrary()+savePromptLibrary() 写回 IndexedDB',
+      '🔧 去掉过时的 localStorage 读写（wzjPromptLib）'
     ]
   }
 ];
