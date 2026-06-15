@@ -5384,10 +5384,18 @@ function resetPromptLibrary() {
     var lib = loadPromptLibrary();
     var existingIds = {};
     lib.prompts.forEach(function(p) { existingIds[p.id] = true; });
+    var now = new Date().toISOString();
+    var defaults = [
+      { id: 'p_default_koubo', name: '口播轻量化润色（默认）', type: 'koubo', content: DEFAULT_PROMPTS.koubo, isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_pyq', name: '朋友圈点线面体润色（默认）', type: 'pyq', content: DEFAULT_PROMPTS.pyq, isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_chat', name: 'AI对话（默认）', type: 'chat', content: (typeof aiGetSystemPrompt === 'function' ? aiGetSystemPrompt() : ''), isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_baoxi1', name: '今日战报（报喜模板）', type: 'baoxi', content: "===== 报喜模板：今日战报 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今日战报」+ 出餐X份 + 售卖情况（全卖完/剩X份）\n2. 中间：一句话点评今天最受欢迎的菜，有细节感\n3. 结尾：「报喜完毕，晚安～」\n\n要求：口语化、接地气，像跟朋友聊天。3-5句话，不要太长。直接输出纯文案，不要解释。", isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_baoxi2', name: '客户原话（报喜模板）', type: 'baoxi', content: "===== 报喜模板：客户原话 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今天有个客户说：」+ 转述或直接引用客户好评\n2. 中间：你听到这个评价的真实感受（一句话，别太煽情）\n3. 结尾：「报喜了哈哈～」\n\n要求：客户原话越原汁原味越好，感受要真实。3-5句话。直接输出纯文案。", isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_baoxi3', name: '意外之喜（报喜模板）', type: 'baoxi', content: "===== 报喜模板：意外之喜/小故事 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「今天发生了一件事：」+ 讲一个小故事（邻居闻到味、路人问价、孩子爱吃等）\n2. 中间：故事的经过，尽量简短2-3句，有细节\n3. 结尾：一个简单的感受 +「好梦各位。」\n\n要求：必须是真实发生的小事，不带广告目的就是分享。口语化，有画面感。直接输出纯文案。", isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_baoxi4', name: '复购感动（报喜模板）', type: 'baoxi', content: "===== 报喜模板：复购感动 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「有个客户这次是第X次订了」+ 次数\n2. 中间：一个细节——他每次都点什么菜、有什么偏好、住多远也要点等\n3. 结尾：简单感受，点到为止 +「今晚报喜就这条。」\n\n要求：细节越具体越真，让人感受到老客户的信任。3-5句话。直接输出纯文案。", isDefault: true, createdAt: now, updatedAt: now },
+      { id: 'p_default_baoxi5', name: '里程碑（报喜模板）', type: 'baoxi', content: "===== 报喜模板：里程碑 =====\n你是周锅锅，柳州牛酷客私厨的老板。请按以下格式写一条报喜朋友圈：\n\n1. 开头：「一个小里程碑：今天第X份出餐」或其他里程碑内容\n2. 中间：回顾一句——之前怎么开始的，简短有力\n3. 结尾：感谢一句（真诚不空泛）+ 预告明天\n\n要求：每周一次，有仪式感。感谢要具体，预告要有钩子。3-5句话。直接输出纯文案。", isDefault: true, createdAt: now, updatedAt: now }
+    ];
     var added = 0;
-    // 重新加载默认提示词列表
-    promptLibraryCache = null;
-    var defaults = loadPromptLibrary().prompts.filter(function(p) { return p.isDefault; });
     defaults.forEach(function(def) {
       if (!existingIds[def.id]) {
         lib.prompts.push(def);
@@ -6694,7 +6702,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.47';
+var APP_VERSION = '2.48';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7183,6 +7191,15 @@ var VERSION_HISTORY = [
     desc: [
       '🎨 提示词库弹窗 z-index 从 10000 提升到 100003',
       '🎨 确保提示词库弹窗在所有弹窗之上（包括 AI 面板）'
+    ]
+  },
+  {
+    version: '2.48',
+    date: '2026-06-16',
+    tag: '🔥 修复初始化提示词返回 0 条（从 IndexedDB 读不到默认）',
+    desc: [
+      '🔧 resetPromptLibrary 改用硬编码默认提示词列表，不从 IndexedDB 读取',
+      '🔧 解决索引不存在时 loadPromptLibrary 返回空默认列表的问题'
     ]
   }
 ];
