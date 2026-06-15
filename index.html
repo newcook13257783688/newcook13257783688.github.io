@@ -3500,9 +3500,9 @@ body.theme-dark .tag-clear-btn:hover {
     border-radius: var(--radius-lg);
     font-size: 13px;
     font-family: var(--font-family);
-    resize: none;
+    resize: vertical;
     min-height: 36px;
-    max-height: 80px;
+    max-height: 200px;
     line-height: 1.5;
     transition: border-color 0.15s;
     outline: none;
@@ -3628,6 +3628,7 @@ body.theme-dark .tag-clear-btn:hover {
   .prompt-card .type-badge { font-size:10px; padding:2px 8px; border-radius:10px; font-weight:500; white-space:nowrap; }
   .prompt-card .type-badge.koubo { background:#eef2ff; color:#4f46e5; }
   .prompt-card .type-badge.pyq { background:#fdf2f8; color:#db2777; }
+  .prompt-card .type-badge.chat { background:#ecfdf5; color:#059669; }
   .prompt-card .info { flex:1; min-width:0; }
   .prompt-card .info .name { font-size:13px; font-weight:500; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
   .prompt-card .info .name .star { color:#f59e0b; font-size:12px; }
@@ -3683,6 +3684,7 @@ body.theme-dark .tag-clear-btn:hover {
   body.theme-dark .prompt-card:hover { border-color:#4f46e5; }
   body.theme-dark .prompt-card .type-badge.koubo { background:#1e1b4b; color:#a78bfa; }
   body.theme-dark .prompt-card .type-badge.pyq { background:#4c1d3d; color:#f472b6; }
+  body.theme-dark .prompt-card .type-badge.chat { background:#064e3b; color:#6ee7b7; }
   body.theme-dark .prompt-card.default-card { border-color:#4f46e5; background:#1a1a2e; }
   body.theme-dark .prompt-card .card-actions button { background:#2a2a3a; border-color:#444; color:#ccc; }
   body.theme-dark .prompt-card .card-actions button:hover { border-color:#4f46e5; color:#a78bfa; }
@@ -4210,6 +4212,9 @@ body.theme-dark .tag-clear-btn:hover {
     <div class="prompt-lib-header">
       <div class="title">📋 提示词库</div>
       <div class="actions">
+        <button onclick="exportPromptLib()" title="导出全部提示词为JSON">📤 导出</button>
+        <button onclick="document.getElementById('promptLibImportFile').click()" title="从JSON文件导入提示词">📥 导入</button>
+        <input type="file" id="promptLibImportFile" accept=".json" style="display:none" onchange="importPromptLib(event)">
         <button onclick="openPromptEdit()" class="add-btn">+ 新建</button>
         <button onclick="closePromptLib()">✕</button>
       </div>
@@ -5024,6 +5029,68 @@ function closePromptLib() {
   setTimeout(function() { ov.style.display = 'none'; }, 260);
 }
 
+function exportPromptLib() {
+  var lib = loadPromptLibrary();
+  var data = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    prompts: lib.prompts,
+    activeKoubo: lib.activeKoubo,
+    activePyq: lib.activePyq,
+    activeChat: lib.activeChat
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '牛酷客_提示词库_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ 已导出 ' + lib.prompts.length + ' 条提示词', 'success');
+}
+
+function importPromptLib(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data.prompts || !Array.isArray(data.prompts)) {
+        showToast('❌ 文件格式不正确，缺少 prompts 数组', 'error');
+        return;
+      }
+      var lib = loadPromptLibrary();
+      var imported = 0, skipped = 0;
+      for (var i = 0; i < data.prompts.length; i++) {
+        var p = data.prompts[i];
+        if (!p.id || !p.type) { skipped++; continue; }
+        var existing = lib.prompts.find(function(x) { return x.id === p.id; });
+        if (existing) {
+          // 覆盖已存在的同名ID提示词
+          Object.assign(existing, p);
+          imported++;
+        } else {
+          lib.prompts.push(p);
+          imported++;
+        }
+      }
+      // 恢复活跃状态
+      if (data.activeKoubo) lib.activeKoubo = data.activeKoubo;
+      if (data.activePyq) lib.activePyq = data.activePyq;
+      if (data.activeChat) lib.activeChat = data.activeChat;
+      savePromptLibrary();
+      renderPromptLib();
+      refreshPromptStatus();
+      showToast('✅ 导入 ' + imported + ' 条，跳过 ' + skipped + ' 条', 'success');
+    } catch (err) {
+      showToast('❌ 导入失败：' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
 function filterPromptLib(type, el) {
   promptLibFilter = type;
   var chips = document.querySelectorAll('#promptLibFilter .chip');
@@ -5044,12 +5111,12 @@ function renderPromptLib() {
   var html = '';
   for (var i = 0; i < prompts.length; i++) {
     var p = prompts[i];
-    var typeLabel = p.type === 'koubo' ? '口播' : '朋友圈';
-    var typeCls = p.type === 'koubo' ? 'koubo' : 'pyq';
+    var typeLabel = p.type === 'koubo' ? '口播' : (p.type === 'pyq' ? '朋友圈' : '对话');
+    var typeCls = p.type === 'koubo' ? 'koubo' : (p.type === 'pyq' ? 'pyq' : 'chat');
     var starHtml = p.isDefault ? '<span class="star">⭐</span>' : '';
     var defaultCls = p.isDefault ? ' default-card' : '';
     var preview = p.content.replace(/\n/g, ' ').substring(0, 80);
-    var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id);
+    var isActive = (p.type === 'koubo' && lib.activeKoubo === p.id) || (p.type === 'pyq' && lib.activePyq === p.id) || (p.type === 'chat' && lib.activeChat === p.id);
     html += '<div class="prompt-card' + defaultCls + '" onclick="selectPromptCard(\'' + p.id + '\',\'' + p.type + '\')">';
     html += '<span class="type-badge ' + typeCls + '">' + typeLabel + '</span>';
     html += '<div class="info">';
@@ -5067,7 +5134,15 @@ function renderPromptLib() {
 function selectPromptCard(id, type) {
   setActivePrompt(type, id);
   renderPromptLib();
-  showToast('✅ 已切换' + (type === 'koubo' ? '口播' : '朋友圈') + '提示词', 'success');
+  if (type === 'chat') {
+    var lib = loadPromptLibrary();
+    var prompt = lib.prompts.find(function(p) { return p.id === id; });
+    if (prompt) {
+      var inp = document.getElementById('aiInput');
+      if (inp) { inp.value = prompt.content; inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 200) + 'px'; }
+    }
+  }
+  showToast('✅ 已切换' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) + '提示词', 'success');
 }
 
 function deletePromptConfirm(id) {
@@ -5081,6 +5156,7 @@ function deletePromptConfirm(id) {
     if (p.isDefault) { showToast('⚠️ 默认提示词不可删除', 'error'); return; }
     if (lib.activeKoubo === id) lib.activeKoubo = 'p_default_koubo';
     if (lib.activePyq === id) lib.activePyq = 'p_default_pyq';
+    if (lib.activeChat === id) lib.activeChat = 'p_default_chat';
     lib.prompts.splice(idx, 1);
     savePromptLibrary();
     renderPromptLib();
@@ -5100,7 +5176,7 @@ function openPromptEdit(id) {
   var box = document.getElementById('promptEditBox');
   var title = isNew ? '新建提示词' : '编辑提示词';
   var nameVal = isNew ? '' : prompt.name;
-  var typeVal = isNew ? 'koubo' : prompt.type;
+  var typeVal = isNew ? (promptLibFilter !== 'all' ? promptLibFilter : 'koubo') : prompt.type;
   var contentVal = isNew ? '' : prompt.content;
   var defaultChecked = prompt ? prompt.isDefault : false;
   box.innerHTML = ''
@@ -5172,7 +5248,7 @@ function openPromptPicker(type, event) {
   var lib = loadPromptLibrary();
   var prompts = lib.prompts.filter(function(p) { return p.type === type; });
   var drop = document.getElementById('promptPickerDrop');
-  var activeId = type === 'koubo' ? lib.activeKoubo : lib.activePyq;
+  var activeId = type === 'koubo' ? lib.activeKoubo : (type === 'pyq' ? lib.activePyq : lib.activeChat);
   var html = '<div class="pick-divider">选择' + (type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) + '提示词</div>';
   for (var i = 0; i < prompts.length; i++) {
     var p = prompts[i];
@@ -5199,6 +5275,14 @@ function closePromptPicker() {
 function pickPrompt(id, type) {
   setActivePrompt(type, id);
   closePromptPicker();
+  if (type === 'chat') {
+    var lib = loadPromptLibrary();
+    var prompt = lib.prompts.find(function(p) { return p.id === id; });
+    if (prompt) {
+      var inp = document.getElementById('aiInput');
+      if (inp) { inp.value = prompt.content; inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 200) + 'px'; }
+    }
+  }
   showToast('✅ 已切换提示词', 'success');
 }
 
@@ -5210,7 +5294,7 @@ function pickPromptOpenLib(type) {
     var chips = document.querySelectorAll('#promptLibFilter .chip');
     for (var i = 0; i < chips.length; i++) chips[i].classList.remove('active');
     for (var j = 0; j < chips.length; j++) {
-      if (chips[j].textContent.indexOf(type === 'koubo' ? '口播' : '朋友圈') >= 0) { chips[j].classList.add('active'); break; }
+      if (chips[j].textContent.indexOf(type === 'koubo' ? '口播' : (type === 'pyq' ? '朋友圈' : '对话')) >= 0) { chips[j].classList.add('active'); break; }
     }
     renderPromptLib();
   }, 100);
@@ -5596,7 +5680,7 @@ function aiHandleKeydown(e) {
 
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.15';
+var APP_VERSION = '2.16';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -5734,6 +5818,18 @@ var VERSION_HISTORY = [
       '✍️ 三处朋友圈润色提示词同步为完整点线面体结构描述',
       '🎨 按钮 padding 统一为 5px 12px，更紧凑',
       '🔧 三主题（极简白/商务蓝/科技暗色）按钮样式同步'
+    ]
+  },
+  {
+    version: '2.16',
+    date: '2026-06-15',
+    tag: '📤 提示词库导出/导入 + 对话提示词填入输入框',
+    desc: [
+      '📤 提示词库管理弹窗新增「导出」按钮：一键导出全部提示词为 JSON 文件',
+      '📥 提示词库管理弹窗新增「导入」按钮：从 JSON 文件导入/合并提示词',
+      '🔄 导入策略：同名 ID 覆盖更新，新 ID 追加，保留活跃状态',
+      '💬 对话类型提示词选择后自动填入 AI 输入框',
+      '📐 AI 输入框支持拖拽调整高度（resize:vertical，最大200px）'
     ]
   },
   {
