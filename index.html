@@ -5973,8 +5973,14 @@ function backupAllToCloud() {
         cta: item.cta || '',
         topics: JSON.stringify(item.topics || []),
         shot: item.shot ? true : false,
-        charCount: item.charCount || 0,
-        timeEstimate: item.timeEstimate || 0,
+        charCount: (function() {
+          var v = (item.charCount || 0).toString().replace(/[^0-9]/g, '');
+          return parseInt(v, 10) || 0;
+        })(),
+        timeEstimate: (function() {
+          var v = (item.timeEstimate || 0).toString().replace(/[^0-9]/g, '');
+          return parseInt(v, 10) || 0;
+        })(),
         createdAt: item.createdAt || '',
         updatedAt: item.updatedAt || ''
       };
@@ -6557,7 +6563,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.28';
+var APP_VERSION = '2.29';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -6863,6 +6869,16 @@ var VERSION_HISTORY = [
       '🔧 app_config 表 upsert on_conflict=key',
       '🔧 prompts 表 upsert on_conflict=name,type（复合主键）',
       '🔧 supabaseBatchUpload 加 console.error 错误日志'
+    ]
+  },
+  {
+    version: '2.29',
+    date: '2026-06-16',
+    tag: '☁️ 修复 timeEstimate 字符串上传 400',
+    desc: [
+      '🔧 backupAllToCloud: charCount/timeEstimate 上传前转整数',
+      '🔧 去除字符串中的非数字字符（如"34秒"→34）',
+      '🔧 修复 Supabase 400：invalid input syntax for type integer'
     ]
   }
 ];
