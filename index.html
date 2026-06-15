@@ -6038,7 +6038,7 @@ function backupAllToCloud() {
       supabaseBatchUpload(step.table, step.records, 50,
         step.table === 'articles' ? 'id' :
         step.table === 'app_config' ? 'key' :
-        step.table === 'prompts' ? 'name,type' : undefined
+        step.table === 'prompts' ? 'name' : undefined
       ).then(function() {
         doStep(i + 1, hasError);
       }).catch(function(err) {
@@ -6671,7 +6671,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.34';
+var APP_VERSION = '2.35';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7038,6 +7038,14 @@ var VERSION_HISTORY = [
     desc: [
       '🔧 删除清空函数残留的旧版代码段（导致 JS 解析异常，浏览器用缓存运行）',
       '🔧 清空云端现在真正使用正确的 Supabase DELETE 语法'
+    ]
+  },
+  {
+    version: '2.35',
+    date: '2026-06-16',
+    tag: '☁️ 修复提示词备份 on_conflict=name，去掉 type',
+    desc: [
+      '🔧 提示词表主键可能不是复合 (name,type)，改为 on_conflict=name'
     ]
   }
 ];
