@@ -4494,14 +4494,14 @@ var _idbDB = null;
 var IDB_DATA_KEYS = ['wzjDB','wzjCategories','wzjHooks','wzjGoldens','wzjCompareList'];
 
 function idbGet(key) {
-  if (!_idbAvailable) return localStorage.getItem(key);
   if (_idbCache.hasOwnProperty(key)) return _idbCache[key];
-  if (!_idbReady) return localStorage.getItem(key);
-  return null;
+  return localStorage.getItem(key);
 }
 
 function idbSet(key, value) {
-  if (!_idbAvailable) { localStorage.setItem(key, value); return; }
+  // 始终同时写入 localStorage 作为备份（IndexedDB 初始化前也能读）
+  localStorage.setItem(key, value);
+  if (!_idbAvailable) return;
   _idbCache[key] = value;
   _idbFlush(key);  // 立即写入，无防抖
 }
@@ -6582,7 +6582,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.41';
+var APP_VERSION = '2.42';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7013,6 +7013,16 @@ var VERSION_HISTORY = [
       '🗑️ 提示词库弹窗顶部的 ☁️ 上传 / ☁️ 下载 按钮已移除',
       '🗑️ 删除 uploadPromptLibToCloud / downloadPromptLibFromCloud 函数',
       '💡 现在统一使用系统设置中的「一键备份 / 一键恢复」'
+    ]
+  },
+  {
+    version: '2.42',
+    date: '2026-06-16',
+    tag: '🔥 修复 IndexedDB 初始化前读不到数据（刷新后分类消失）',
+    desc: [
+      '🔧 idbGet 缓存未命中时回退到 localStorage（不再返回 null）',
+      '🔧 idbSet 始终同步写入 localStorage 作为备份',
+      '🔧 修复刷新页面后分类、提示词等数据变为默认值的 bug'
     ]
   }
 ];
