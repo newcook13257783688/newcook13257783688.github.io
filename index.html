@@ -5977,10 +5977,10 @@ function backupAllToCloud() {
 
     // 依次备份（直接 upsert，不先清空）
     var steps = [
-      { label: '文案数据', table: 'articles', records: articles },
-      { label: '内容分类', table: 'app_config', records: [categoriesRecord] },
-      { label: '提示词', table: 'prompts', records: prompts },
-      { label: '钩子金句', table: 'hooks_goldens', records: hooksGoldens }
+      { label: '文案数据', table: 'articles', records: articles, conflict: 'id' },
+      { label: '内容分类', table: 'app_config', records: [categoriesRecord], conflict: 'key' },
+      { label: '提示词', table: 'prompts', records: prompts, clearFilter: '?name=neq.' },
+      { label: '钩子金句', table: 'hooks_goldens', records: hooksGoldens, clearFilter: '?id=gt.0' }
     ];
 
     function doStep(i, hasError) {
@@ -5998,21 +5998,30 @@ function backupAllToCloud() {
       if (!step.records.length) { doStep(i + 1); return; }
       if (statusEl) statusEl.textContent = '正在备份：' + step.label + '（' + step.records.length + ' 条）';
 
-      supabaseBatchUpload(step.table, step.records, 50,
-        step.table === 'articles' ? 'id' :
-        step.table === 'app_config' ? 'key' :
-        undefined
-      ).then(function() {
-        doStep(i + 1, hasError);
-      }).catch(function(err) {
-        var fullErr = err.message || JSON.stringify(err);
-        showToast('❌ 备份失败（' + step.label + '）：' + fullErr, 'error');
-        console.error('[backup-step-failed]', step.table, err);
-        // 把详细错误写到状态区
-        if (statusEl) statusEl.innerHTML = '❌ ' + step.label + ' 失败：<code style="font-size:10px;word-break:break-all;">' + fullErr + '</code>';
-        // 继续下一步（不中断链）
-        doStep(i + 1, true);
-      });
+      // 先清空再上传（无冲突字段的表，避免重复）
+      function upload() {
+        supabaseBatchUpload(step.table, step.records, 50, step.conflict
+        ).then(function() {
+          doStep(i + 1, hasError);
+        }).catch(function(err) {
+          var fullErr = err.message || JSON.stringify(err);
+          showToast('❌ 备份失败（' + step.label + '）：' + fullErr, 'error');
+          console.error('[backup-step-failed]', step.table, err);
+          if (statusEl) statusEl.innerHTML = '❌ ' + step.label + ' 失败：<code style="font-size:10px;word-break:break-all;">' + fullErr + '</code>';
+          doStep(i + 1, true);
+        });
+      }
+      if (step.clearFilter) {
+        if (statusEl) statusEl.textContent = '清空云端旧数据：' + step.label;
+        supabaseRequest('DELETE', step.table + step.clearFilter)
+          .then(upload)
+          .catch(function(err) {
+            console.error('[backup-clear-failed]', step.table, err);
+            upload(); // 清空失败也继续上传
+          });
+      } else {
+        upload();
+      }
     }
     doStep(0, false);
   });
@@ -6644,7 +6653,7 @@ function aiQuickBaoxi() {
 }
 // ===== AI 聊天面板函数结束 =====
 // ===== 版本号系统 =====
-var APP_VERSION = '2.43';
+var APP_VERSION = '2.44';
 var VERSION_HISTORY = [
   {
     version: '1.0',
@@ -7095,6 +7104,16 @@ var VERSION_HISTORY = [
       '📋 每张提示词卡片前加复选框，支持多选',
       '📋 顶部出现批量删除按钮条',
       '📋 打开弹窗时自动清除选中状态'
+    ]
+  },
+  {
+    version: '2.44',
+    date: '2026-06-16',
+    tag: '🔥 备份时先清空提示词和钩子金句云端旧数据，杜绝重复',
+    desc: [
+      '🔧 备份提示词和钩子金句前先 DELETE 清空云端表',
+      '🔧 有主键的表（文案/分类）继续用 upsert',
+      '🔧 无主键的表（提示词/钩子金句）用 清空+INSERT'
     ]
   }
 ];
